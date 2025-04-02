@@ -37,6 +37,72 @@ link to their contributions in all repos here. -->
 Must include: all the hardware, all the containers/software platforms, all the models, 
 all the data. -->
 
+#### Taiwanese Medical LLM Construction Process
+```mermaid
+graph TD
+    A[Taiwanese Mandarin LLaMA-2 Base Model] --> B[Fine-tune with Medical Taiwanese Mandarin Corpus]
+    B --> C[Medical Taiwanese Mandarin LLM]
+    C --> D[Fine-tune with Taiwanese Corpus]
+    D --> E[Taiwanese Medical LLM]
+    
+    %% Data Preparation Blocks
+    F[Medical Taiwanese Mandarin Corpus] --Preprocessing--> B
+    G[Taiwanese Corpus] --Preprocessing--> D
+    H[Partial Medical Taiwanese Mandarin Corpus] --Prevent Forgetting--> D
+    
+    %% Technical Details
+    I[PEFT Techniques\nLoRA/Adapters] --> D
+    J[Evaluation Metrics] --> E
+    
+    %% Styles
+    classDef model fill:#f9d4d4,stroke:#333,stroke-width:2px
+    classDef data fill:#d4f9d4,stroke:#333,stroke-width:1px
+    classDef tech fill:#d4d4f9,stroke:#333,stroke-width:1px
+    
+    class A,C,E model
+    class F,G,H data
+    class I,J tech
+```
+#### Training Stage Details
+Stage 1: Medical Traditional Chinese LLM Construction
+```mermaid
+flowchart LR
+    A[Traditional Chinese LLaMA-2] --> B{Fine-tune with Medical Corpus}
+    B --> C[Medical Traditional Chinese LLM]
+    D[(Medical Traditional Chinese Corpus)] --> E[Data Preprocessing]
+    E --> F[Cleaning\nStandardization\nQuality Filtering]
+    F --> B
+```
+Stage 2: Taiwanese Medical LLM Conversion
+```mermaid
+flowchart LR
+    A[Medical Traditional Chinese LLM] --> B{Fine-tune with Taiwanese Corpus}
+    B --> C[Taiwanese Medical LLM]
+    
+    D[(Taiwanese Corpus)] --> E[Taiwanese Data Preprocessing]
+    F[(Partial Medical Traditional Chinese Corpus)] --> G[Mixed Dataset]
+    E --> G
+    G --> B
+    
+    H[PEFT Techniques] --> B
+    I[Curriculum Learning] --> B
+```
+
+#### Evaluation and Deployment Process
+
+```mermaid
+flowchart TD
+    A[Taiwanese Medical LLM] --> B[Evaluation Process]
+    B --> C{Meets Standards?}
+    C -->|Yes| D[Deploy Model]
+    C -->|No| E[Adjust and Retrain]
+    E --> A
+    
+    F[Taiwanese Medical Evaluation Set] --> B
+    G[Traditional Chinese Medical Evaluation Set] --> B
+    H[General Taiwanese Evaluation Set] --> B
+```
+
 ### Summary of outside materials
 
 <!-- In a table, a row for each dataset, foundation model. 
