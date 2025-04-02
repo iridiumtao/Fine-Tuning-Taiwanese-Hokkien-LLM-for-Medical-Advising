@@ -64,23 +64,23 @@ graph TD
     class I,J tech
 ```
 #### Training Stage Details
-Stage 1: Medical Traditional Chinese LLM Construction
+Stage 1: Medical Taiwanese Mandarin LLM Construction
 ```mermaid
 flowchart LR
-    A[Traditional Chinese LLaMA-2] --> B{Fine-tune with Medical Corpus}
-    B --> C[Medical Traditional Chinese LLM]
-    D[(Medical Traditional Chinese Corpus)] --> E[Data Preprocessing]
+    A[Taiwanese Mandarin LLaMA-2] --> B{Fine-tune with Medical Corpus}
+    B --> C[Medical Taiwanese Mandarin LLM]
+    D[(Medical Taiwanese Mandarin Corpus)] --> E[Data Preprocessing]
     E --> F[Cleaning\nStandardization\nQuality Filtering]
     F --> B
 ```
 Stage 2: Taiwanese Medical LLM Conversion
 ```mermaid
 flowchart LR
-    A[Medical Traditional Chinese LLM] --> B{Fine-tune with Taiwanese Corpus}
+    A[Medical Taiwanese Mandarin LLM] --> B{Fine-tune with Taiwanese Corpus}
     B --> C[Taiwanese Medical LLM]
     
     D[(Taiwanese Corpus)] --> E[Taiwanese Data Preprocessing]
-    F[(Partial Medical Traditional Chinese Corpus)] --> G[Mixed Dataset]
+    F[(Partial Medical Taiwanese Mandarin Corpus)] --> G[Mixed Dataset]
     E --> G
     G --> B
     
@@ -99,7 +99,7 @@ flowchart TD
     E --> A
     
     F[Taiwanese Medical Evaluation Set] --> B
-    G[Traditional Chinese Medical Evaluation Set] --> B
+    G[Taiwanese Mandarin Medical Evaluation Set] --> B
     H[General Taiwanese Evaluation Set] --> B
 ```
 
