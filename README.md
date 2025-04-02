@@ -109,12 +109,12 @@ flowchart TD
 Name of data/model, conditions under which it was created (ideally with links/references), 
 conditions under which it may be used. -->
 
-|              | How it was created | Conditions of use |
-|--------------|--------------------|-------------------|
-| Data set 1   |                    |                   |
-| Data set 2   |                    |                   |
-| Base model 1 |                    |                   |
-| etc          |                    |                   |
+|                       | Type | How it was created                                                                       | Conditions of use                                                                                        |
+|-----------------------|---|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| MedQA                 | Dataset | Collecting QAs and textbooks from multiple regions and processing them into JSONL format | MIT                                                                                                      |
+| Taiwanese Corpus (Huē-ji̍p)   | Dataset | Compiling Taiwanese Corpus from Dictionary, News, and more                               | MIT, CC BY-ND 3.0 TW                                                                                     |
+| TIADE-LX              | Base model | Fine-tuning LLaMA2-7B with Taiwanese domain-specific data                                | Free under a non-exclusive, non-transferable license, provided compliance with Meta AI’s Llama 2 license |
+| Taiwanese Hokkien LLM | Base model  | Fine-tuning TIADE-LX on a limited Taiwanese corpus                                       | MIT                                                                                                      |
 
 
 ### Summary of infrastructure requirements
