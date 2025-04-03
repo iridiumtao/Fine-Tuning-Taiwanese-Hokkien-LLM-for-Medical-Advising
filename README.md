@@ -26,7 +26,7 @@ link to their contributions in all repos here. -->
 | All team members                |                                             |                                    |
 | Team member 1                   | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
 | Team member 2                   | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
-| Team member 3                   | Data pipeline (unit 8)                      |                                    |
+| Team member 3                   | Data pipeline (unit 8)                      | TsuYun Chen                        |
 | Team member 4 (if there is one) | Continuous X pipeline (unit 3)              |                                    |
 
 
@@ -150,22 +150,22 @@ and which optional "difficulty" points you are attempting. -->
 
 <!-- Make sure to clarify how you will satisfy the Unit 8 requirements,  and which 
 optional "difficulty" points you are attempting. -->
-# Persistent Storage  
+Persistent Storage  
 - **Chameleon Cloud**  
 
-# Offline Data  
+Offline Data  
 - **JSON**  
 
-# Data Pipelines  
+Data Pipelines  
 
-Data Sources  
+- Data Sources  
 *(Refer to the outside meterials section above)*  
 
-Med QA (JSON file)  
-1. Extract into a **Pandas DataFrame** for preprocessing (formatting, labeling).  
-2. Convert into a **Hugging Face dataset** for model training.  
+1. Med QA (JSON file)  
+    - Extract into a **Pandas DataFrame** for preprocessing (formatting, labeling).  
+    - Convert into a **Hugging Face dataset** for model training.  
 
-Taiwanese Corpus  
+2. Taiwanese Corpus  
 - Already formatted as a **Hugging Face dataset**, directly used for training.  
 
 Online Data  
