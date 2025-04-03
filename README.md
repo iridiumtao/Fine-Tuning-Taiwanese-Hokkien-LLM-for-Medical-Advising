@@ -1,17 +1,24 @@
-# MLOps_Project
-NYU_MLOps_Spring2025_Project
-
-## Title of project
+# Fine-Tuning a Taiwanese Hokkien LLM for Medical Advising
 
 <!-- 
 Discuss: Value proposition: Your will propose a machine learning system that can be 
 used in an existing business or service. (You should not propose a system in which 
 a new business or service would be developed around the machine learning system.) 
 Describe the value proposition for the machine learning system. What’s the (non-ML) 
-status quo used in the business or service? What business metric are you going to be 
+status quo used in the business (MUST include the company name) or service? What business metric are you going to be 
 judged on? (Note that the “service” does not have to be for general users; you can 
 propose a system for a science problem, for example.)
 -->
+
+Taiwanese Hokkien, commonly known as the Taiwanese language or Taiwan Taigi (臺灣台語), is a language spoken natively by approximately 70% of Taiwan's population.
+
+Currently, elderly individuals in rural areas spend considerable time and energy reaching hospitals for consultations. Due to the digital divide, existing communication software-based video consultation services remain underutilized by the elderly population.
+
+Our project aims to create a large language model specialized in medical advisors capable of communicating in Taiwanese Hokkien. This model could provide preliminary medical information to elderly speakers, enhancing disease prevention and encouraging early treatment. We can then integrate the LLM with existing Taiwanese Hokkien Speech-to-Text and Text-to-Speech models to provide a voice-based service. This human-centered design minimizes technology adoption barriers by meeting users in their native language context, extending technological assistance to traditionally underserved rural communities and elderly populations who might otherwise struggle with standard Mandarin UI-based systems.
+
+The system will be explicitly designed and marketed as a preliminary information tool rather than a diagnostic service. Users will be informed that "this system provides general health information only and is not a substitute for professional medical diagnosis or treatment." We will also need a committee of healthcare professionals to review system responses periodically and make sure AI suggestions do not make mistakes. The system will need to comply with Taiwan FDA's Artificial Intelligence / Machine Learning - Based Software as Medical Device ([AI/ML-Based SaMD](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637648052118207932)) and Taiwan FDA's [Guidance for Industry on Management of Cybersecurity in Medical Devices](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637558103530220620)
+
+We anticipate that hospitals and clinics could adopt or integrate this system into the existing National Health Insurance App, enabling technology to assist previously underserved rural and elderly populations. This would promote better health outcomes among citizens while improving resource utilization efficiency across Taiwan's healthcare system, creating a more accessible and equitable healthcare environment that respects linguistic preferences while leveraging technological innovation.
 
 ### Contributors
 
@@ -21,13 +28,13 @@ Then, each row after that is: name of contributor, their role, and in the third 
 you will link to their contributions. If your project involves multiple repos, you will 
 link to their contributions in all repos here. -->
 
-| Name                            | Responsible for                             | Link to their commits in this repo |
-|---------------------------------|---------------------------------------------|------------------------------------|
-| All team members                |                                             |                                    |
-| Team member 1                   | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
-| Team member 2                   | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
-| Team member 3                   | Data pipeline (unit 8)                      | TsuYun Chen                        |
-| Team member 4 (if there is one) | Continuous X pipeline (unit 3)              | Yi Syuan Chung                     |
+| Name             | Responsible for                             | Link to their commits in this repo |
+|------------------|---------------------------------------------|------------------------------------|
+| All team members |                                             |                                    |
+| Team member 1    | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
+| Team member 2    | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
+| Team member 3    | Data pipeline (unit 8)                      | TsuYun Chen                        |
+| Team member 4    | Continuous X pipeline (unit 3)              | Yi Syuan Chung                     |
 
 
 
