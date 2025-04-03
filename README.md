@@ -150,35 +150,33 @@ and which optional "difficulty" points you are attempting. -->
 
 <!-- Make sure to clarify how you will satisfy the Unit 8 requirements,  and which 
 optional "difficulty" points you are attempting. -->
-Persistent Storage  
-- **Chameleon Cloud**  
+    Persistent Storage  
+    - **Chameleon Cloud**  
 
-Offline Data  
-- **JSON**  
+    Offline Data  
+    - **JSON**  
 
-Data Pipelines  
+    Data Pipelines  
 
-- Data Sources  
-*(Refer to the outside meterials section above)*  
+    - Data Sources  
+    *(Refer to the outside meterials section above)*  
 
-1. Med QA (JSON file)  
-    - Extract into a **Pandas DataFrame** for preprocessing (formatting, labeling).  
-    - Convert into a **Hugging Face dataset** for model training.  
+    1. Med QA (JSON file)  
+        - Extract into a **Pandas DataFrame** for preprocessing (formatting, labeling).  
+        - Convert into a **Hugging Face dataset** for model training.  
 
-2. Taiwanese Corpus  
-- Already formatted as a **Hugging Face dataset**, directly used for training.  
+    2. Taiwanese Corpus  
+    - Already formatted as a **Hugging Face dataset**, directly used for training.  
 
-Online Data  
-- **Input text (real-time query)** → Format (combine with previous dialogue if applicable) → Feed into the **LLM for inference**.  
+    Online Data  
+    - **Input text (real-time query)** → Format (combine with previous dialogue if applicable) → Feed into the **LLM for inference**.  
 
-Additional Steps:  
-- Preprocess input (tokenization, standardization).  
-- Handle streaming queries via **WebSocket/API**.  
-- Log and store responses for further analysis.  
+    Additional Steps:  
+    - Preprocess input (tokenization, standardization).  
+    - Handle streaming queries via **WebSocket/API**.  
+    - Log and store responses for further analysis.  
 
 #### Continuous X
 
 <!-- Make sure to clarify how you will satisfy the Unit 3 requirements,  and which 
 optional "difficulty" points you are attempting. -->
-
-
