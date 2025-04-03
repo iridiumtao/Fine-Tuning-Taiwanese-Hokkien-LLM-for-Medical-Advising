@@ -179,12 +179,12 @@ optional "difficulty" points you are attempting. -->
 #### Continuous X
 
 ##### Infrastructure Setup
--Entire infrastructure in Git, using Terraform (declarative) to provision computing resources.
--Use automation tools Argo Workflows to set up the environment.
--Containerize all components and deploy using a microservices architecture.
+- Entire infrastructure in Git, using Terraform (declarative) to provision computing resources.
+- Use automation tools Argo Workflows to set up the environment.
+- Containerize all components and deploy using a microservices architecture.
 ##### Data Preprocessing, CI/CD and continuous training 
--Automatically fetch and preprocess new data (Taiwanese medical corpus and general Taiwanese corpus) with a pipeline.
--Fine-tune Taiwanese Mandarin LLaMA-2 with the Medical Corpus to form Medical Taiwanese Mandarin LLM. Further fine-tune this model using Taiwanese Corpus.
--Automated evaluation pipeline runs, if the model does not meet performance standards, the pipeline triggers adjustments and retraining.
+- Automatically fetch and preprocess new data (Taiwanese medical corpus and general Taiwanese corpus) with a pipeline.
+- Fine-tune Taiwanese Mandarin LLaMA-2 with the Medical Corpus to form Medical Taiwanese Mandarin LLM. Further fine-tune this model using Taiwanese Corpus.
+- Automated evaluation pipeline runs, if the model does not meet performance standards, the pipeline triggers adjustments and retraining.
 ##### Deployment Process (Staged Deployment & Cloud-Native)
--Staged deployment process: Staging, Canary Release, Production Rollout.
+- Staged deployment process: Staging, Canary Release, Production Rollout.
