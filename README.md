@@ -42,12 +42,12 @@ all the data. -->
 graph TD
     A[Taiwanese Mandarin LLaMA-2 Base Model] --> B[Fine-tune with Medical Taiwanese Mandarin Corpus]
     B --> C[Medical Taiwanese Mandarin LLM]
-    C --> D[Fine-tune with Taiwanese Corpus]
-    D --> E[Taiwanese Medical LLM]
+    C --> D[Fine-tune with Taiwanese Hokkien Corpus]
+    D --> E[Taiwanese Hokkien Medical LLM]
     
     %% Data Preparation Blocks
     F[Medical Taiwanese Mandarin Corpus] --Preprocessing--> B
-    G[Taiwanese Corpus] --Preprocessing--> D
+    G[Taiwanese Hokkien Corpus] --Preprocessing--> D
     H[Partial Medical Taiwanese Mandarin Corpus] --Prevent Forgetting--> D
     
     %% Technical Details
@@ -73,13 +73,13 @@ flowchart LR
     E --> F[Cleaning\nStandardization\nQuality Filtering]
     F --> B
 ```
-Stage 2: Taiwanese Medical LLM Conversion
+Stage 2: Taiwanese Hokkien Medical LLM Conversion
 ```mermaid
 flowchart LR
-    A[Medical Taiwanese Mandarin LLM] --> B{Fine-tune with Taiwanese Corpus}
-    B --> C[Taiwanese Medical LLM]
+    A[Medical Taiwanese Mandarin LLM] --> B{Fine-tune with Taiwanese Hokkien Corpus}
+    B --> C[Taiwanese Hokkien Medical LLM]
     
-    D[(Taiwanese Corpus)] --> E[Taiwanese Data Preprocessing]
+    D[(Taiwanese Hokkien Corpus)] --> E[Taiwanese Hokkien Data Preprocessing]
     F[(Partial Medical Taiwanese Mandarin Corpus)] --> G[Mixed Dataset]
     E --> G
     G --> B
@@ -109,12 +109,12 @@ flowchart TD
 Name of data/model, conditions under which it was created (ideally with links/references), 
 conditions under which it may be used. -->
 
-|                             | Type       | How it was created                                                                       | Conditions of use                                                                                        |
-|-----------------------------|------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| MedQA                       | Dataset    | Collecting QAs and textbooks from multiple regions and processing them into JSONL format | MIT                                                                                                      |
-| Taiwanese Corpus (Huē-ji̍p) | Dataset    | Compiling Taiwanese Corpus from Dictionary, News, and more                               | MIT, CC BY-ND 3.0 TW                                                                                     |
-| TIADE-LX                    | Base model | Fine-tuning LLaMA2-7B with Taiwanese domain-specific data                                | Free under a non-exclusive, non-transferable license, provided compliance with Meta AI’s Llama 2 license |
-| Taiwanese Hokkien LLM       | Base model | Fine-tuning TIADE-LX on a limited Taiwanese corpus                                       | MIT                                                                                                      |
+| Name                                | Type       | How it was created                                                                       | Conditions of use                                                                                        |
+|-------------------------------------|------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| MedQA                               | Dataset    | Collecting QAs and textbooks from multiple regions and processing them into JSONL format | MIT                                                                                                      |
+| Taiwanese Hokkien Corpus (Huē-ji̍p) | Dataset    | Compiling Taiwanese Hokkien Corpus from Dictionary, News, and more                       | MIT, CC BY-ND 3.0 TW                                                                                     |
+| TIADE-LX                            | Base model | Fine-tuning LLaMA2-7B with Taiwanese domain-specific data                                | Free under a non-exclusive, non-transferable license, provided compliance with Meta AI’s Llama 2 license |
+| Taiwanese Hokkien LLM               | Base model | Fine-tuning TIADE-LX on a limited Taiwanese Hokkien corpus                               | MIT                                                                                                      |
 
 
 ### Summary of infrastructure requirements
