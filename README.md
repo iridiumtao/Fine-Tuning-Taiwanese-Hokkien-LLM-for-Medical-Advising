@@ -21,13 +21,13 @@ Then, each row after that is: name of contributor, their role, and in the third 
 you will link to their contributions. If your project involves multiple repos, you will 
 link to their contributions in all repos here. -->
 
-| Name                            | Responsible for | Link to their commits in this repo |
-|---------------------------------|-----------------|------------------------------------|
-| All team members                |                 |                                    |
-| Team member 1                   |                 |                                    |
-| Team member 2                   |                 |                                    |
-| Team member 3                   |                 |                                    |
-| Team member 4 (if there is one) |                 |                                    |
+| Name                            | Responsible for                             | Link to their commits in this repo |
+|---------------------------------|---------------------------------------------|------------------------------------|
+| All team members                |                                             |                                    |
+| Team member 1                   | Model training (unit 4 and 5)               |                                    |
+| Team member 2                   | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
+| Team member 3                   | Data pipeline (unit 8)                      |                                    |
+| Team member 4 (if there is one) | Continuous X pipeline (unit 3)              |                                    |
 
 
 
@@ -109,12 +109,12 @@ flowchart TD
 Name of data/model, conditions under which it was created (ideally with links/references), 
 conditions under which it may be used. -->
 
-|                       | Type | How it was created                                                                       | Conditions of use                                                                                        |
-|-----------------------|---|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| MedQA                 | Dataset | Collecting QAs and textbooks from multiple regions and processing them into JSONL format | MIT                                                                                                      |
-| Taiwanese Corpus (Huē-ji̍p)   | Dataset | Compiling Taiwanese Corpus from Dictionary, News, and more                               | MIT, CC BY-ND 3.0 TW                                                                                     |
-| TIADE-LX              | Base model | Fine-tuning LLaMA2-7B with Taiwanese domain-specific data                                | Free under a non-exclusive, non-transferable license, provided compliance with Meta AI’s Llama 2 license |
-| Taiwanese Hokkien LLM | Base model  | Fine-tuning TIADE-LX on a limited Taiwanese corpus                                       | MIT                                                                                                      |
+|                             | Type       | How it was created                                                                       | Conditions of use                                                                                        |
+|-----------------------------|------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| MedQA                       | Dataset    | Collecting QAs and textbooks from multiple regions and processing them into JSONL format | MIT                                                                                                      |
+| Taiwanese Corpus (Huē-ji̍p) | Dataset    | Compiling Taiwanese Corpus from Dictionary, News, and more                               | MIT, CC BY-ND 3.0 TW                                                                                     |
+| TIADE-LX                    | Base model | Fine-tuning LLaMA2-7B with Taiwanese domain-specific data                                | Free under a non-exclusive, non-transferable license, provided compliance with Meta AI’s Llama 2 license |
+| Taiwanese Hokkien LLM       | Base model | Fine-tuning TIADE-LX on a limited Taiwanese corpus                                       | MIT                                                                                                      |
 
 
 ### Summary of infrastructure requirements
