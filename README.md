@@ -27,7 +27,7 @@ link to their contributions in all repos here. -->
 | Team member 1                   | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
 | Team member 2                   | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
 | Team member 3                   | Data pipeline (unit 8)                      | TsuYun Chen                        |
-| Team member 4 (if there is one) | Continuous X pipeline (unit 3)              |                                    |
+| Team member 4 (if there is one) | Continuous X pipeline (unit 3)              | Yi Syuan Chung                     |
 
 
 
@@ -178,5 +178,13 @@ optional "difficulty" points you are attempting. -->
 
 #### Continuous X
 
-<!-- Make sure to clarify how you will satisfy the Unit 3 requirements,  and which 
-optional "difficulty" points you are attempting. -->
+    Infrastructure Setup
+    -Entire infrastructure in Git, using Terraform (declarative) to provision computing resources.
+    -Use automation tools Argo Workflows to set up the environment.
+    -Containerize all components and deploy using a microservices architecture.
+    Data Preprocessing, CI/CD and continuous training 
+    -Automatically fetch and preprocess new data (Taiwanese medical corpus and general Taiwanese corpus) with a pipeline.
+    -Fine-tune Taiwanese Mandarin LLaMA-2 with the Medical Corpus to form Medical Taiwanese Mandarin LLM. Further fine-tune this model using Taiwanese Corpus.
+    -Automated evaluation pipeline runs, if the model does not meet performance standards, the pipeline triggers adjustments and retraining.
+    Deployment Process (Staged Deployment & Cloud-Native)
+    -Staged deployment process: Staging, Canary Release, Production Rollout.
