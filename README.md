@@ -24,7 +24,7 @@ link to their contributions in all repos here. -->
 | Name                            | Responsible for                             | Link to their commits in this repo |
 |---------------------------------|---------------------------------------------|------------------------------------|
 | All team members                |                                             |                                    |
-| Team member 1                   | Model training (unit 4 and 5)               |                                    |
+| Team member 1                   | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
 | Team member 2                   | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
 | Team member 3                   | Data pipeline (unit 8)                      |                                    |
 | Team member 4 (if there is one) | Continuous X pipeline (unit 3)              |                                    |
