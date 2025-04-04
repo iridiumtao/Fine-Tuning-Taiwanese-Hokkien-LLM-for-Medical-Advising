@@ -45,7 +45,7 @@ link to their contributions in all repos here. -->
 Must include: all the hardware, all the containers/software platforms, all the models, 
 all the data. -->
 
-#### Taiwanese Medical LLM Construction Process
+#### Taiwanese Hokkien Medical LLM Construction Process
 ```mermaid
 graph TD
     A[Taiwanese Mandarin LLaMA-2 Base Model] --> B[Fine-tune with Medical Taiwanese Mandarin Corpus]
@@ -70,6 +70,27 @@ graph TD
     class A,C,E model
     class F,G,H data
     class I,J tech
+```
+#### Taiwanese Hokkien Medical LLM with Speech Input/Output
+```mermaid
+graph TD
+    A[Taiwanese Hokkien Speech Input] --> B[Taiwanese Hokkien STT Model]
+    B --> C[Taiwanese Hokkien Text]
+    C --> D[Taiwanese Hokkien Medical LLM]
+    D --> E[Generated Taiwanese Hokkien Response]
+    E --> F[Taiwanese Hokkien TTS Model]
+    F --> G[Taiwanese Hokkien Speech Output]
+    
+    %% Styles
+    classDef model fill:#f9d4d4,stroke:#333,stroke-width:2px
+    classDef data fill:#d4f9d4,stroke:#333,stroke-width:1px
+    classDef tech fill:#d4d4f9,stroke:#333,stroke-width:1px
+    classDef flow fill:#f9f9d4,stroke:#333,stroke-width:1px
+    
+    class B,D,F model
+    class H,I,J,K,L data
+    class M,N tech
+    class A,C,E,G flow
 ```
 #### Training Stage Details
 Stage 1: Medical Taiwanese Mandarin LLM Construction
@@ -100,13 +121,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Taiwanese Medical LLM] --> B[Evaluation Process]
+    A[Taiwanese Hokkien Medical LLM] --> B[Evaluation Process]
     B --> C{Meets Standards?}
     C -->|Yes| D[Deploy Model]
     C -->|No| E[Adjust and Retrain]
     E --> A
     
-    F[Taiwanese Medical Evaluation Set] --> B
+    F[Taiwanese Hokkien Medical Evaluation Set] --> B
     G[Taiwanese Mandarin Medical Evaluation Set] --> B
     H[General Taiwanese Evaluation Set] --> B
 ```
