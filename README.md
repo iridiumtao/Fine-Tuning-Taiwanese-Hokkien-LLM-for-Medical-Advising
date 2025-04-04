@@ -16,11 +16,11 @@ Currently, elderly individuals in rural areas spend considerable time and energy
 
 Our project aims to create a large language model specialized in medical advisors capable of communicating in Taiwanese Hokkien. This model could provide preliminary medical information to elderly speakers, enhancing disease prevention and encouraging early treatment. We can then integrate the LLM with existing Taiwanese Hokkien [Speech-to-Text](https://www.kaggle.com/competitions/espnet-taiwanese-asr/overview) and [Text-to-Speech](http://tts001.iptcloud.net:8804/)*1 models to provide a voice-based service. This human-centered design minimizes technology adoption barriers by meeting users in their native language context, extending technological assistance to traditionally underserved rural communities and elderly populations who might otherwise struggle with standard Mandarin UI-based systems.
 
-The system will be explicitly designed and marketed as a preliminary information tool rather than a diagnostic service. Users will be informed that "this system provides general health information only and is not a substitute for professional medical diagnosis or treatment." We will also need a committee of healthcare professionals to review system responses periodically and make sure AI suggestions do not make mistakes. The system will need to comply with Taiwan FDA's Artificial Intelligence / Machine Learning - Based Software as Medical Device ([AI/ML-Based SaMD](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637648052118207932)) and Taiwan FDA's [Guidance for Industry on Management of Cybersecurity in Medical Devices](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637558103530220620)
+The system will be explicitly designed and marketed as a preliminary information tool rather than a diagnostic service. Users will be informed that "this system provides general health information only and is not a substitute for professional medical diagnosis or treatment." We will also need a committee of healthcare professionals to review system responses periodically and make sure AI suggestions do not make mistakes. The system will need to comply with Taiwan FDA's Artificial Intelligence / Machine Learning-Based Software as Medical Device ([AI/ML-Based SaMD](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637648052118207932)) and Taiwan FDA's [Guidance for Industry on Management of Cybersecurity in Medical Devices](https://www.fda.gov.tw/tc/includes/GetFile.ashx?id=f637558103530220620).
 
 We anticipate that hospitals and clinics could adopt or integrate this system into the existing National Health Insurance App, enabling technology to assist previously underserved rural and elderly populations. This would promote better health outcomes among citizens while improving resource utilization efficiency across Taiwan's healthcare system, creating a more accessible and equitable healthcare environment that respects linguistic preferences while leveraging technological innovation.
 
-*1, this is a demo website of TTS system developed by Speech AI Research Center, National Yang Ming Chiao Tung University, Taiwan
+*1, this is a demo website of TTS system with translation capability developed by Speech AI Research Center, National Yang Ming Chiao Tung University, Taiwan
 ### Contributors
 
 <!-- Table of contributors and their roles. 
@@ -151,8 +151,154 @@ and which optional "difficulty" points you are attempting. -->
 
 #### Model serving and monitoring platforms
 
+##### Unit 6: Model serving
+
 <!-- Make sure to clarify how you will satisfy the Unit 6 and Unit 7 requirements, 
 and which optional "difficulty" points you are attempting. -->
+
+1. API Endpoint: RESTful API service using FastAPI
+   * `/responses` endpoint for medical query processing in Taiwanese Hokkien
+   * `/health` endpoint for system status monitoring
+2. Requirements Specification
+   - Model Size:
+   7b Model, about 15~20 GB model size
+   - Latency Requirements:
+     - <500ms response time for text queries
+     - <3s for voice-to-text-to-voice round trip
+   - Throughput Requirements:
+     - Support for 100 concurrent users during peak hospital hours
+     - Batch processing of 1000 queries/minute for population health analysis
+   - Concurrency Requirements:
+     - Scale to support 50 simultaneous active conversations
+     - Handle 200 connection requests per minute during peak hours
+
+3. Model optimizations
+
+   1. Baseline Model Performance Measurement
+      *   The metrics we will collect include:
+          *   Single sample inference latency (median, p95, p99)
+          *   Batch inference throughput (frames/tokens/sequences per second), with various batch sizes
+          *   Model size on disk (in GB)
+          *   Model accuracy
+       
+   2. Graph Optimization Experiments
+       *   ONNX Runtime
+       *   Visualization tools: Netron
+
+   3. Quantization and Reduced Precision Experiments
+       * Post-Training Quantization
+           *   INT8
+           *   Mixed-Precision
+       * Look for techniques to recover accuracy lost during quantization.
+           * Quantization-Aware Fine-Tuning (QAT)
+           * L4Q
+           * ...
+       * Hardware-Specific Quantization
+           * ONNX Runtime
+           * PyTorch Quantization
+           * TensorRT
+
+4. System-Level Optimizations for Cloud Deployment
+
+   1. Concurrent Request Processing
+      - Asynchronous FastAPI
+      - Evaluate performance impact of different worker configurations (number of workers, threads per worker)
+      
+   2. Dynamic Batching Strategies
+      - To group incoming requests and optimize GPU utilization
+      - Test various batch sizes and timeout settings to balance throughput vs. latency
+
+   3. Inference Server Optimization
+      - Deploy Triton Inference Server with optimized configuration for LLM serving
+      - Look for different execution providers and test performance with them and model optimization settings
+
+   4. Resource Allocation and Scaling
+      - Optimize GPU allocation for different concurrency levels
+      - Horizontal scaling based on request load patterns
+      - Establish resource utilization thresholds for meeting latency requirements
+
+   5. Performance Benchmarking
+      - Conduct load tests at various concurrency levels
+      - Measure and analyze:
+        - Throughput (requests per second)
+        - Latency distribution (median, p95, p99)
+        - Maximum sustainable concurrency before latency degradation
+        - Resource utilization correlation with performance metrics
+
+##### Unit 7. Evaluation and Monitoring
+
+1. Offline Evaluation
+
+   - Standard LLM Evaluation: 
+     - Perplexity on medical corpus
+     - ROUGE scores for medical text summarization
+     - F1/Exact Match scores on medical QA datasets
+
+   - Domain-Specific Evaluation:
+     - Medical knowledge accuracy benchmarks
+     - Clinical reasoning assessment
+     - Medical terminology usage correctness
+
+   - Bias and Fairness Analysis:
+     - Evaluate performance across different medical specialties
+     - Test for gender, racial or demographic biases in medical contexts
+
+   - Failure Mode Testing:
+     - Test resistance to medical hallucinations
+     - Evaluate handling of ambiguous medical queries
+     - Assess behavior with adversarial medical prompts
+
+2. Load Testing
+
+   - Generate simulated concurrent medical query traffic
+   - Measure and analyze:
+     - Response times under various load conditions
+     - Maximum throughput while maintaining acceptable latency
+     - Error rates at different concurrency levels
+     - Resource utilization patterns
+
+3. Online evaluation in canary
+
+   - Deploy to limited production environment serving a small percentage of traffic
+   - Simulate various medical user profiles and interaction patterns
+   - Monitor:
+     - Real-world performance metrics
+     - Response quality on live medical queries
+     - System stability under production conditions
+     - Detection of any concept drift in medical query patterns
+
+4. Close the loop
+
+   - Production Feedback Collection:
+     - Implement a 5-point quality rating system after each medical response
+     - Deploy "Report Inaccuracy" button with structured feedback categories
+     - Sample 5% of responses for expert medical reviewer evaluation
+     - Store all user interactions and feedback in a dedicated feedback database for re-training
+
+   - Data Collection for Retraining:
+     - TBD
+
+5. Define a business-specific evaluation
+
+   - Key Business Metrics:
+     - **Primary Metric**: Percentage of medically accurate responses as verified by domain experts
+     - **Efficiency Metrics**: Average time saved per medical query compared to traditional information retrieval
+     - **Engagement Metrics**: User return rate, session duration, query complexity growth
+     - **Adoption Metrics**: Expansion of usage across different medical specialties
+
+6. Monitor for data drift (Extra)
+   - Monitor statistical distribution of medical query types and complexity
+   - Track vocabulary shifts and emerging medical terminology
+   - Implement KL divergence alerts for significant query pattern changes
+   - Create visual drift dashboards with daily/weekly/monthly comparisons
+
+7. Model Degradation Monitoring (Extra)
+   - Establish automated performance regression testing
+   - Monitor key performance indicators including accuracy, precision on critical medical entities
+   - Implement sliding window analysis of feedback scores
+   - Create automated alerting system when metrics fall below predefined thresholds
+
+
 
 #### Data pipeline
 
