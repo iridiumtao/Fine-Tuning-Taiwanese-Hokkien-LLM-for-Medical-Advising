@@ -20,12 +20,13 @@ dataset = dataset.map(format_prompt)
 
 # Tokenize
 model_id = "taide/TAIDE-LX-7B"
-tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+print("Using fast tokenizer?", tokenizer.is_fast)
 
 def tokenize(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+    return tokenizer(example["text"], truncation = True, padding="max_length", max_length = 512)
 
-tokenized_dataset = dataset.map(tokenize, batched=True)
+tokenized_dataset = dataset.map(tokenize, batched = True)
 
 # Load model with LoRA
 model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
