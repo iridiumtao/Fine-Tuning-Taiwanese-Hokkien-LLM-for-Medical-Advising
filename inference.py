@@ -12,7 +12,7 @@ model.to(device)
 model.eval()
 
 # Test prompt
-prompt = "請問：感冒和流感有什麼不同？"
+prompt = "請直接回答下面問題的正確答案，不需要列出選項：\n\n醫生跟買藥的流程有什麼不同？ "
 
 # Tokenize
 inputs = tokenizer(prompt, return_tensors = "pt").to(device)
