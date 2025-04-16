@@ -5,6 +5,7 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from peft import LoraConfig, get_peft_model, TaskType
+from torch import float16
 
 # Load dataset
 dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
@@ -24,17 +25,21 @@ tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 print("Using fast tokenizer?", tokenizer.is_fast)
 
 def tokenize(example):
-    return tokenizer(example["text"], truncation = True, padding="max_length", max_length = 512)
+    return tokenizer(example["text"], truncation = True, padding = "max_length", max_length = 512)
 
 tokenized_dataset = dataset.map(tokenize, batched = True)
 
 # Load model with LoRA
-model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
+
+import torch
+torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
+
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map = "auto", torch_dtype = float16)
 
 lora_config = LoraConfig(
-    r=8,
-    lora_alpha=16,
-    lora_dropout=0.05,
+    r = 8,
+    lora_alpha = 16,
+    lora_dropout = 0.05,
     task_type=TaskType.CAUSAL_LM
 )
 
