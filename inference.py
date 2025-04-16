@@ -13,7 +13,14 @@ model.eval()
 
 # Test prompt
 question = input("請輸入你的問題：")
-prompt = f"請用一段文字直接回答下面的問題，不要重複問題，也不要列出選項：\n\n問題：{question}"
+prompt = (
+    "問：感冒怎麼辦？\n"
+    "答：多休息，多喝水，如有不適可服用感冒藥。\n\n"
+    "問：頭痛怎麼緩解？\n"
+    "答：可以使用冰敷或熱敷，保持安靜並適當休息。如持續不適，建議就醫。\n\n"
+    f"問：{question}\n"
+    "答："
+)
 
 
 # Tokenize
