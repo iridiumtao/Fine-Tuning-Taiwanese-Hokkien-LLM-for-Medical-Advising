@@ -106,4 +106,3 @@ wrapt==1.17.2
 xxhash==3.5.0
 yarl==1.19.0
 zipp==3.21.0
-dataset==0.9.6
