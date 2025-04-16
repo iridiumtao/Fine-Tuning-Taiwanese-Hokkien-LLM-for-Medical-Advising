@@ -12,7 +12,9 @@ model.to(device)
 model.eval()
 
 # Test prompt
-prompt = input("請輸入你的問題：")
+question = input("請輸入你的問題：")
+prompt = f"請用一段文字直接回答下面的問題，不要重複問題，也不要列出選項：\n\n問題：{question}"
+
 
 # Tokenize
 inputs = tokenizer(prompt, return_tensors = "pt").to(device)
