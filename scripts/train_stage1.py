@@ -34,7 +34,7 @@ tokenized_dataset = dataset.map(tokenize, batched = True)
 import torch
 torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
 
-model = AutoModelForCausalLM.from_pretrained(model_id, device_map = "auto", torch_dtype = float16)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, device_map = "auto", torch_dtype = float16)
 
 lora_config = LoraConfig(
     r = 8,
