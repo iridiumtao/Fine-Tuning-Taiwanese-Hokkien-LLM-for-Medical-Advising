@@ -12,7 +12,7 @@ model.to(device)
 model.eval()
 
 # Test prompt
-prompt = "請直接回答下面問題的正確答案，不需要列出選項：\n\n醫生跟買藥的流程有什麼不同？ "
+prompt = input("請輸入你的問題：")
 
 # Tokenize
 inputs = tokenizer(prompt, return_tensors = "pt").to(device)
