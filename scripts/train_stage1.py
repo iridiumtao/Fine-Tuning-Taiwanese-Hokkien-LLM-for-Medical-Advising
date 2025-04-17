@@ -13,11 +13,17 @@ dataset = load_dataset("json", data_files = {"train": "../data/medical_qa_with_a
 
 print(dataset["train"][0])
 
-# Format prompt
+# # Format prompt
+# def format_prompt(example):
+#     prompt = f"### 問題:\n{example['instruction']}\n\n### 回答:\n{example['output']}"
+#     return {
+#         "prompt": prompt
+#     }
+
+# Format prompt (creates "text" key!)
 def format_prompt(example):
-    prompt = f"### 問題:\n{example['instruction']}\n\n### 回答:\n{example['output']}"
     return {
-        "prompt": prompt
+        "text": f"<|user|>\n{example['instruction']}\n<|assistant|>\n{example['output']}"
     }
 
 # dataset = dataset.map(format_prompt)
@@ -34,14 +40,14 @@ def tokenize(example):
     return tokenizer(example["text"], truncation = True, padding = "max_length", max_length = 512)
 
 #tokenized_dataset = dataset.map(tokenize, batched = True)
-tokenized_dataset = dataset["train"].map(tokenize, batched=True)
+tokenized_dataset = dataset["train"].map(tokenize, batched = True)
 
 # Load model with LoRA
 
 import torch
 torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
 
-model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, load_in_8bit = True)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, torch_dtype = float16, load_in_8bit = True)
 
 lora_config = LoraConfig(
     r = 8,
