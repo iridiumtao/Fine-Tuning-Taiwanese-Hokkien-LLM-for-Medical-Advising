@@ -8,7 +8,9 @@ from peft import LoraConfig, get_peft_model, TaskType
 from torch import float16
 
 # Load dataset
-dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
+# dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
+dataset = load_dataset("json", data_files = {"train": "../data/medical_qa_with_answer_text.jsonl"})
+
 print(dataset["train"][0])
 
 # Format prompt
@@ -18,7 +20,8 @@ def format_prompt(example):
         "prompt": prompt
     }
 
-dataset = dataset.map(format_prompt)
+# dataset = dataset.map(format_prompt)
+dataset["train"] = dataset["train"].map(format_prompt)
 
 # Tokenize
 # model_id = "taide/TAIDE-LX-7B"
@@ -30,7 +33,8 @@ print("Using fast tokenizer?", tokenizer.is_fast)
 def tokenize(example):
     return tokenizer(example["text"], truncation = True, padding = "max_length", max_length = 512)
 
-tokenized_dataset = dataset.map(tokenize, batched = True)
+#tokenized_dataset = dataset.map(tokenize, batched = True)
+tokenized_dataset = dataset["train"].map(tokenize, batched=True)
 
 # Load model with LoRA
 
