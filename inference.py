@@ -13,8 +13,10 @@ model.eval()
 
 # Test prompt
 question = input("請輸入你的問題：")
-# Test prompt
-prompt = """你是一位專業的台語醫療諮詢助理，請根據下列問題，用口語化的台語簡單回答。請不要列出選項或重複問題。
+
+# Few-shot prompt with formatting
+prompt = f"""你是一位專業的台語醫療諮詢助理，請根據下列問題，用口語化的台語簡單回答。請不要列出選項或重複問題。
+
 範例1：
 Q: 鼻水倒流會引起咳嗽嗎？
 A: 鼻水倒流有時會流到喉嚨，刺激喉嚨引起咳嗽。
@@ -25,8 +27,7 @@ A: 嘴酸、胸口灼熱、吃飽後不舒服。
 
 現在請回答下面的問題：
 Q: {question}
-A: 
-"""
+A:"""
 
 
 # Tokenize
