@@ -61,11 +61,11 @@ training_args = TrainingArguments(
 data_collator = DataCollatorForLanguageModeling(tokenizer = tokenizer, mlm = False)
 
 trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized_dataset["train"],
-    tokenizer=tokenizer,
-    data_collator=data_collator
+    model = model,
+    args = training_args,
+    train_dataset = tokenized_dataset["train"],
+    tokenizer = tokenizer,
+    data_collator = data_collator
 )
 
 trainer.train()

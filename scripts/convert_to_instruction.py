@@ -25,7 +25,7 @@ with open(input_path, "r", encoding="utf-8") as infile:
         prompt = f"{question}\n{formatted_options}\n請選出正確答案並說明理由。"
 
         # Combine letter and answer text
-        full_output = f"{answer_idx}. {answer_text}"
+        full_output = f"{answer_idx}. {answer_text} <END>" #add <END> to prevent model to repeat the answer
 
         converted.append({
             "instruction": prompt,
@@ -36,6 +36,6 @@ with open(input_path, "r", encoding="utf-8") as infile:
 # Save as .jsonl
 with open(output_path, "w", encoding="utf-8") as outfile:
     for item in converted:
-        outfile.write(json.dumps(item, ensure_ascii=False) + "\n")
+        outfile.write(json.dumps(item, ensure_ascii = False) + "\n")
 
 print(f"Done! Converted {len(converted)} items to {output_path}")
