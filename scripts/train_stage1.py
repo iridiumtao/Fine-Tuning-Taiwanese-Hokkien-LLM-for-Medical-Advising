@@ -76,7 +76,7 @@ data_collator = DataCollatorForLanguageModeling(tokenizer = tokenizer, mlm = Fal
 trainer = Trainer(
     model = model,
     args = training_args,
-    train_dataset = tokenized_dataset["train"],
+    train_dataset = tokenized_dataset,
     tokenizer = tokenizer,
     data_collator = data_collator
 )
