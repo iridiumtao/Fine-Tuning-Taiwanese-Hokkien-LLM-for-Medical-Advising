@@ -21,8 +21,10 @@ def format_prompt(example):
 dataset = dataset.map(format_prompt)
 
 # Tokenize
-model_id = "taide/TAIDE-LX-7B"
+# model_id = "taide/TAIDE-LX-7B"
+model_id = "taide/Llama-3.1-TAIDE-LX-8B-Chat"
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+tokenizer.pad_token = tokenizer.eos_token
 print("Using fast tokenizer?", tokenizer.is_fast)
 
 def tokenize(example):
@@ -35,7 +37,7 @@ tokenized_dataset = dataset.map(tokenize, batched = True)
 import torch
 torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
 
-model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, torch_dtype = float16)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, load_in_8bit = True)
 
 lora_config = LoraConfig(
     r = 8,
