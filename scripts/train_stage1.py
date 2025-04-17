@@ -13,8 +13,9 @@ print(dataset["train"][0])
 
 # Format prompt
 def format_prompt(example):
+    prompt = f"### 問題:\n{example['instruction']}\n\n### 回答:\n{example['output']}"
     return {
-        "text": f"### 問題:\n{example['instruction']}\n\n### 回答:\n{example['output']}"
+        "prompt": prompt
     }
 
 dataset = dataset.map(format_prompt)
@@ -40,7 +41,7 @@ lora_config = LoraConfig(
     r = 8,
     lora_alpha = 16,
     lora_dropout = 0.05,
-    task_type=TaskType.CAUSAL_LM
+    task_type = TaskType.CAUSAL_LM
 )
 
 model = get_peft_model(model, lora_config)
@@ -50,7 +51,7 @@ training_args = TrainingArguments(
     output_dir="../models/stage1",
     per_device_train_batch_size=4,
     gradient_accumulation_steps=4,
-    num_train_epochs=3,
+    num_train_epochs = 5,
     logging_steps=10,
     save_strategy="epoch",
     fp16=True,

@@ -22,10 +22,14 @@ with open(input_path, "r", encoding="utf-8") as infile:
         formatted_options = "\n".join([f"{k}: {v}" for k, v in options.items()])
         
         # Format instruction
-        prompt = f"{question}\n{formatted_options}\n請選出正確答案並說明理由。"
+        prompt = (
+            f"你是一位專業的台語醫療諮詢助理。請根據下列問題及選項，用口語化的方式簡單回覆正確答案並說明理由。\n"
+            f"Q: {question}\n{formatted_options}\n請選出正確答案並說明理由。"
+            )
 
         # Combine letter and answer text
-        full_output = f"{answer_idx}. {answer_text} <END>" #add <END> to prevent model to repeat the answer
+        answer_label = options.get(answer_idx, "").strip()
+        full_output = f"A: {answer_label}。{answer_text} <END>" #add <END> to prevent model to repeat the answer
 
         converted.append({
             "instruction": prompt,
