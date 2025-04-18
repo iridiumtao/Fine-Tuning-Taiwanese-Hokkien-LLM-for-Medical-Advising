@@ -8,6 +8,14 @@ from peft import LoraConfig, get_peft_model, TaskType
 from torch import float16
 
 
+# Tokenize: load it first so I can call it in format_prompt to use tokenizer
+# model_id = "taide/TAIDE-LX-7B"
+model_id = "taide/Llama-3.1-TAIDE-LX-8B-Chat"
+tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+tokenizer.pad_token = tokenizer.eos_token
+print("Using fast tokenizer?", tokenizer.is_fast)
+
+
 # Load dataset
 # dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
 dataset = load_dataset("json", data_files = {"train": "../data/medical_qa_with_answer_text.jsonl"})
@@ -30,12 +38,6 @@ def format_prompt(example):
 # dataset = dataset.map(format_prompt)
 dataset["train"] = dataset["train"].map(lambda ex: format_prompt(ex, tokenizer))
 
-# Tokenize
-# model_id = "taide/TAIDE-LX-7B"
-model_id = "taide/Llama-3.1-TAIDE-LX-8B-Chat"
-tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
-tokenizer.pad_token = tokenizer.eos_token
-print("Using fast tokenizer?", tokenizer.is_fast)
 
 def tokenize(example):
     return tokenizer(example["text"], truncation = True, padding = "max_length", max_length = 512)
