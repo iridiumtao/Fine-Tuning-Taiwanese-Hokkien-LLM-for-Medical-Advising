@@ -1,5 +1,5 @@
 ---
-base_model: taide/TAIDE-LX-7B
+base_model: taide/Llama-3.1-TAIDE-LX-8B-Chat
 library_name: peft
 ---
 
