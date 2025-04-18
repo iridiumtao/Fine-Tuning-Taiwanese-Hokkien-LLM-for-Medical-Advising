@@ -61,8 +61,8 @@ model = get_peft_model(model, lora_config)
 # Training settings
 training_args = TrainingArguments(
     output_dir = "../models/stage1",
-    per_device_train_batch_size = 4,
-    gradient_accumulation_steps = 4,
+    per_device_train_batch_size = 1,
+    gradient_accumulation_steps = 8,
     num_train_epochs = 5,
     logging_steps = 10,
     save_strategy = "epoch",
