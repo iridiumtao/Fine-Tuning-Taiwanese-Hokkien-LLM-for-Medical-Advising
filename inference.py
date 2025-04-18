@@ -14,9 +14,7 @@ model.eval()
 # Test prompt
 question = input("請輸入你的問題：")
 
-prompt = f"""你是一位專業的醫療諮詢助理。請簡單回答下列問題，用口語話的方式回答。請直接回答，不要重複問題，也不要列出選項或再繼續問問題。
-Q: {question}
-A: """
+prompt = f"<|user|>\n{question}\n<|assistant|>\n"
 
 
 # Tokenize
