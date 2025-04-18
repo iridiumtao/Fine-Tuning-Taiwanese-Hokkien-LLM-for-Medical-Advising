@@ -25,7 +25,7 @@ print(dataset["train"][0])
 # Format prompt (creates "text" key!)
 def format_prompt(example):
     return {
-        "text": f"<|user|>\n{example['instruction']}\n<|assistant|>\n{example['output']}{tokenizer.eos_token}"
+        "text": f"<|user|>\n{example['instruction']}\n<|assistant|>\n{example['output']}<|endoftext|>"
     }
 
 # dataset = dataset.map(format_prompt)
