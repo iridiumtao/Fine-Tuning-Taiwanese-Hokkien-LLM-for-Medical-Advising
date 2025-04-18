@@ -5,7 +5,9 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from peft import LoraConfig, get_peft_model, TaskType
+import torch
 from torch import float16
+
 
 # Load dataset
 # dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
@@ -23,7 +25,7 @@ print(dataset["train"][0])
 # Format prompt (creates "text" key!)
 def format_prompt(example):
     return {
-        "text": f"<|user|>\n{example['instruction']}\n<|assistant|>\n{example['output']}"
+        "text": f"<|user|>\n{example['instruction']}\n<|assistant|>\n{example['output']}{tokenizer.eos_token}"
     }
 
 # dataset = dataset.map(format_prompt)
@@ -43,8 +45,6 @@ def tokenize(example):
 tokenized_dataset = dataset["train"].map(tokenize, batched = True)
 
 # Load model with LoRA
-
-import torch
 torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
 
 model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, torch_dtype = float16, load_in_8bit = True)
@@ -60,14 +60,14 @@ model = get_peft_model(model, lora_config)
 
 # Training settings
 training_args = TrainingArguments(
-    output_dir="../models/stage1",
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=4,
+    output_dir = "../models/stage1",
+    per_device_train_batch_size = 4,
+    gradient_accumulation_steps = 4,
     num_train_epochs = 5,
-    logging_steps=10,
-    save_strategy="epoch",
-    fp16=True,
-    report_to="none"
+    logging_steps = 10,
+    save_strategy = "epoch",
+    fp16 = True,
+    report_to = "none"
 )
 
 # Trainer
