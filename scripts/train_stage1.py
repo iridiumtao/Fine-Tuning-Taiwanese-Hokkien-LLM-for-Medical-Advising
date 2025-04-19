@@ -7,6 +7,10 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, TaskType
 from torch import float16
 
+# Load model with LoRA
+import torch
+torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
+
 
 # Tokenize: load it first so I can call it in format_prompt to use tokenizer
 # model_id = "taide/TAIDE-LX-7B"
@@ -45,9 +49,6 @@ def tokenize(example):
 #tokenized_dataset = dataset.map(tokenize, batched = True)
 tokenized_dataset = dataset["train"].map(tokenize, batched = True)
 
-# Load model with LoRA
-import torch
-torch.cuda.empty_cache() # free the GPU memory, model's too big lol 
 
 model = AutoModelForCausalLM.from_pretrained(model_id, device_map={"": 0}, torch_dtype = float16, load_in_8bit = True)
 
