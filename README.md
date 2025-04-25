@@ -40,7 +40,7 @@ pip install datasets
 huggingface-cli login
 ```
 
-### Step5: if you are retrainning the model
+### Step5: if you are retrainning the model, if you are not retrainning the model, skip to Step6.
 
 ```python
 cd scripts/
@@ -72,3 +72,10 @@ __Step3:__ test it with python -m bitsandbytes command, it sould show:
 
 
 Than rerun python3 train_stage1.py, it should now work successfully.
+
+### Step6: Run inference.py to Chat with the model:
+
+```python
+python3 inference.py
+```
+You can now enter the question you want to ask.
