@@ -5,7 +5,7 @@
 
 
 
-### Step1: create Virtual environment: (taigi-env) or any name you want
+### Step1: create Virtual environment: (taigi-env) or any name you prefer
 
 ```python
 python3 -m venv taigi-env
