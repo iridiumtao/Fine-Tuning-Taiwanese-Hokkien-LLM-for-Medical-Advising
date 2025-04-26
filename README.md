@@ -11,7 +11,7 @@ Copy `create_chameleon_server.ipynb` and run in Chameleon Jupyter Interface
 
 Follow the notebook to
  - Launch and set up the Chameleon server
- - Set up Git SSH Key
+ - Set up Git SSH Key and user
  - Clone the project
  - Set up Docker and NVIDIA container toolkit
 
@@ -65,13 +65,13 @@ __Follow instructions below:__
 
 __Step 1:__ clear it first:
 
-```python
+```shell
 pip uninstall bitsandbytes -y
 ```
 
 __Step 2:__ reinstall:
 
-```python
+```shell
 pip install bitsandbytes --no-cache-dir
 ```
 
@@ -85,7 +85,7 @@ Than rerun python3 train_stage1.py, it should now work successfully.
 
 ### Step6: Run inference.py to Chat with the model:
 
-```python
+```shell
 python3 inference.py
 ```
 You can now enter the question you want to ask.
