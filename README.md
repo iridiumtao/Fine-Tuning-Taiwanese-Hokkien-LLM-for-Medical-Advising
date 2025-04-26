@@ -5,7 +5,11 @@
 
 ### Create Server on Chameleon
 
-Follow `create_chameleon_server.ipynb` to
+Copy `create_chameleon_server.ipynb` and run in Chameleon Jupyter Interface
+
+![](docs/Chameleon_Jupyter_Interface.png)
+
+Follow the notebook to
  - Launch and set up the Chameleon server
  - Set up Git SSH Key
  - Clone the project
