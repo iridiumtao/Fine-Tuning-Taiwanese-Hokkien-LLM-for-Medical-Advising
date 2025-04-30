@@ -31,7 +31,7 @@ services:
       context: ./web    
     container_name: gradio
     environment:
-      - FASTAPI_SERVER_URL=http://fastapi:8000
+      - FASTAPI_SERVER_URL=http://fastapi_server:8000
     ports:
       - "7860:7860"
       
