@@ -58,6 +58,7 @@ services:
     volumes:
       - ./configs/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
       - ./configs/dashboards:/var/lib/grafana/dashboards:ro
+      - ./configs/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
 
 
 volumes:
