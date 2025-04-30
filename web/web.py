@@ -41,4 +41,4 @@ with gr.Blocks() as web:
         outputs=[chatbot, msg]
     )
 
-web.launch()
+web.launch(server_name="0.0.0.0", server_port=7860)
