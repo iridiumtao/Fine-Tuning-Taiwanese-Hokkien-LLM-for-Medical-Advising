@@ -11,8 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application code
 COPY . .
 
-# Expose FastAPI port
+# Expose web port
 EXPOSE 7860
 
-# Command to run FastAPI
+# Command to run web
 CMD ["python", "-u", "web.py"]
