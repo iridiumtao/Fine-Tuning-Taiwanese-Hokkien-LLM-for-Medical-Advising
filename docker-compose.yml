@@ -2,13 +2,15 @@
 version: "3.8"
 
 services:
-  fastapi:
+  # back-end
+  fastapi_server:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         # put huggingface token in .env file or .bachrc
         HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
+    container_name: fastapi_server
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
     deploy:
@@ -20,23 +22,29 @@ services:
               capabilities: [gpu]
     ports:
       - "8000:8000"
+    volumes:
+      - 
 
-  web:
+  # front-end web service
+  gradio:
     build:
       context: ./web    
+    container_name: gradio
     environment:
       - FASTAPI_SERVER_URL=http://fastapi:8000
     ports:
       - "7860:7860"
       
+  # System Metrics
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
       - "9090:9090"
-    #volumes:
-    #  - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
 
+  # Performance Metrics
   grafana:
     image: grafana/grafana:latest
     container_name: grafana

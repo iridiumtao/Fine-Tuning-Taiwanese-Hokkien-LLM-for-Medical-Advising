@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
@@ -42,4 +43,4 @@ def generate(request: GenerationRequest):
     generated = tokenizer.decode(output_ids[0], skip_special_tokens=True)
     return {"prediction": generated, "probability": 1.0}  
 
-
+Instrumentator().instrument(app).expose(app)
