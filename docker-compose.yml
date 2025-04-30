@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # put huggingface token in .env file
+        HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
+    environment:
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "8000:8000"
+
+volumes:
+  models-cache:
