@@ -3,12 +3,12 @@ FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements-serve.txt .
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements-serve.txt
 
-RUN pip install sentencepiece --prefer-binary \
-    && pip install datasets
+# RUN pip install sentencepiece --prefer-binary \
+#     && pip install datasets
     
     #&& pip install bitsandbytes --force-reinstall --no-cache-dir
 
