@@ -1,7 +1,7 @@
 import gradio as gr
 import requests
 
-FLASK_SERVER_URL = "http://127.0.0.1:5000"
+FASTAPI_SERVER_URL = "http://127.0.0.1:8000"
 
 def chat_with_model(message, history, temperature, top_p):
     # request Flask API
@@ -11,9 +11,15 @@ def chat_with_model(message, history, temperature, top_p):
         "top_p": top_p
     }
     try:
-        response = requests.post(f"{FLASK_SERVER_URL}/generate", json=payload)
+        response = requests.post(f"{FASTAPI_SERVER_URL}/generate", json=payload)
         response.raise_for_status()
-        model_response = response.json().get("response", "")
+        data = response.json()
+        # Extract only the assistant's reply, removing any prompt echoes
+        raw = data.get('prediction', '')
+        # Split on the assistant token and take the content after it
+        parts = raw.split('<|assistant|>')
+        reply = parts[-1].strip() if len(parts) > 1 else raw
+        model_response = reply
     except Exception as e:
         model_response = f"Error: {e}"
     
