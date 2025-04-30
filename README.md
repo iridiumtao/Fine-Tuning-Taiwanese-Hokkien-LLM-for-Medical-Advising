@@ -1,49 +1,58 @@
 # Fine-Tuning a Taiwanese Hokkien LLM for Medical Advising
 ## Instructions
 
+**Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!**
 
-#### Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!
+### Create Server on Chameleon
 
+Copy `create_chameleon_server.ipynb` and run in Chameleon Jupyter Interface
 
+![](docs/Chameleon_Jupyter_Interface.png)
 
-### Step1: create Virtual environment: (taigi-env) or any name you prefer
+Follow the notebook to
+ - Launch and set up the Chameleon server
+ - Set up Git SSH Key and user
+ - Clone the project
+ - Set up Docker and NVIDIA container toolkit
 
-```python
+### Step 1: Create a Virtual environment: (taigi-env) or any name you prefer
+
+```shell
 python3 -m venv taigi-env
 source taigi-env/bin/activate
 ```
 
-### Step2: swtich branch: (will merge the branch later)
+### Step 2: Switch branch:
 
-```python
-git checkout master
+```shell
+git checkout develop # or your working branch
 ```
 
-### Step3: Install requirement packages in your virtual environment:
+### Step 3: Install requirement packages in your virtual environment:
 
-```python
+```shell
 pip install -r requirements.txt
 ```
 
-__There are some packages that needs to install manually(follow the instructions below):__
-```python
+__There are some packages that need to be installed manually (follow the instructions below):__
+```shell
 pip install sentencepiece --prefer-binary
 ```
 
-```python
+```shell
 pip install datasets
 ```
 
 
-### Step4: Log in hugging face CLI with your own token:
+### Step 4: Log in Hugging Face CLI with your own token:
 
-```python
+```shell
 huggingface-cli login
 ```
 
 ### Step5: if you are retrainning the model, if you are not retrainning the model, skip to Step6.
 
-```python
+```shell
 cd scripts/
 python3 train_stage1.py
 ```
@@ -52,21 +61,21 @@ __After running train_stage1.py, if it shows an error like this:__
 ![image](https://github.com/user-attachments/assets/9aa6f123-5f61-4894-bffd-b67a85c4bf6a)
 
 
-__follow instructions bellow:__
+__Follow instructions below:__
 
-__Step1:__ clear it first:
+__Step 1:__ clear it first:
 
-```python
+```shell
 pip uninstall bitsandbytes -y
 ```
 
-__Step2:__ reinstall:
+__Step 2:__ reinstall:
 
-```python
+```shell
 pip install bitsandbytes --no-cache-dir
 ```
 
-__Step3:__ test it with python -m bitsandbytes command, it sould show:
+__Step 3:__ test it with `python -m bitsandbytes` command, it sould show:
 
 ![image](https://github.com/user-attachments/assets/36b4d98d-608b-40f6-910f-3b6cea2aab53)
 
@@ -76,7 +85,7 @@ Than rerun python3 train_stage1.py, it should now work successfully.
 
 ### Step6: Run inference.py to Chat with the model:
 
-```python
+```shell
 python3 inference.py
 ```
 You can now enter the question you want to ask.
@@ -112,13 +121,13 @@ Then, each row after that is: name of contributor, their role, and in the third 
 you will link to their contributions. If your project involves multiple repos, you will 
 link to their contributions in all repos here. -->
 
-| Name             | Responsible for                             | Link to their commits in this repo |
-|------------------|---------------------------------------------|------------------------------------|
-| All team members |                                             |                                    |
-| Team member 1    | Model training (unit 4 and 5)               | Ping-Jung(Lawrence)Lu              |
-| Team member 2    | Model serving (unit 6), monitoring (unit 7) | Chun-Ju Tao                        |
-| Team member 3    | Data pipeline (unit 8)                      | TsuYun Chen                        |
-| Team member 4    | Continuous X pipeline (unit 3)              | Yi Syuan Chung                     |
+| Name                  | Responsible for                             | Link to their commits in this repo |
+|-----------------------|---------------------------------------------|------------------------------------|
+| All team members      |                                             |                                    |
+| Ping-Jung(Lawrence)Lu | Model training (unit 4 and 5)               |                                    |
+| Chun-Ju Tao           | Model serving (unit 6), monitoring (unit 7) |                                    |
+| TsuYun Chen           | Data pipeline (unit 8)                      |                                    |
+| Yi Syuan Chung        | Continuous X pipeline (unit 3)              |                                    |
 
 
 
