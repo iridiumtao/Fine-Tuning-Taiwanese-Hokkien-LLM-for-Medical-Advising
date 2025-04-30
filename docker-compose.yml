@@ -1,3 +1,4 @@
+# docker-compose.yml
 version: "3.8"
 
 services:
@@ -6,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # put huggingface token in .env file
+        # put huggingface token in .env file or .bachrc
         HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
@@ -23,6 +24,8 @@ services:
   web:
     build:
       context: ./web    
+    environment:
+      - FASTAPI_SERVER_URL=http://fastapi:8000
     ports:
       - "7860:7860"
       
@@ -31,8 +34,8 @@ services:
     container_name: prometheus
     ports:
       - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    #volumes:
+    #  - ./prometheus.yml:/etc/prometheus/prometheus.yml
 
   grafana:
     image: grafana/grafana:latest

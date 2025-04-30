@@ -1,7 +1,11 @@
+# web.py
+
 import gradio as gr
 import requests
+import os
 
-FASTAPI_SERVER_URL = "http://127.0.0.1:8000"
+FASTAPI_SERVER_URL = os.getenv("FASTAPI_SERVER_URL", "http://127.0.0.1:8000")
+
 
 def chat_with_model(message, history, temperature, top_p):
     # request Flask API
