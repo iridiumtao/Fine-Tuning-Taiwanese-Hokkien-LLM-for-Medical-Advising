@@ -23,7 +23,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - 
+      - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
 
   # front-end web service
   gradio:
