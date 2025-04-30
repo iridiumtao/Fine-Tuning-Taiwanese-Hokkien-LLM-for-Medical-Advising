@@ -23,8 +23,7 @@
     "panels": [
       {
         "datasource": {
-          "type": "prometheus",
-          "uid": "beki0liwnwg00a"
+          "type": "prometheus"
         },
         "description": "Due to lack of requests, the 3 lines are likely to be the same.",
         "fieldConfig": {
@@ -112,8 +111,7 @@
           },
           {
             "datasource": {
-              "type": "prometheus",
-              "uid": "beki0liwnwg00a"
+              "type": "prometheus"
             },
             "editorMode": "code",
             "expr": "1000*histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{handler=\"/generate\"}[1m]))",
@@ -125,8 +123,7 @@
           },
           {
             "datasource": {
-              "type": "prometheus",
-              "uid": "beki0liwnwg00a"
+              "type": "prometheus"
             },
             "editorMode": "code",
             "expr": "1000*histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{handler=\"/generate\"}[1m]))",
@@ -142,8 +139,7 @@
       },
       {
         "datasource": {
-          "type": "prometheus",
-          "uid": "beki0liwnwg00a"
+          "type": "prometheus"
         },
         "fieldConfig": {
           "defaults": {
@@ -234,8 +230,7 @@
       },
       {
         "datasource": {
-          "type": "prometheus",
-          "uid": "beki0liwnwg00a"
+          "type": "prometheus"
         },
         "fieldConfig": {
           "defaults": {
@@ -315,8 +310,7 @@
         "targets": [
           {
             "datasource": {
-              "type": "prometheus",
-              "uid": "beki0liwnwg00a"
+              "type": "prometheus"
             },
             "editorMode": "code",
             "expr": "1000 * rate(http_request_duration_seconds_sum{handler=\"/generate\", job=\"Medical LLM\"}[1m]) / \nrate(http_request_duration_seconds_count{handler=\"/generate\", job=\"Medical LLM\"}[1m])",
@@ -326,8 +320,7 @@
           },
           {
             "datasource": {
-              "type": "prometheus",
-              "uid": "beki0liwnwg00a"
+              "type": "prometheus"
             },
             "expr": "",
             "hide": false,
@@ -341,8 +334,7 @@
       },
       {
         "datasource": {
-          "type": "prometheus",
-          "uid": "beki0liwnwg00a"
+          "type": "prometheus"
         },
         "fieldConfig": {
           "defaults": {
@@ -429,8 +421,7 @@
           },
           {
             "datasource": {
-              "type": "prometheus",
-              "uid": "beki0liwnwg00a"
+              "type": "prometheus"
             },
             "editorMode": "code",
             "expr": "rate(http_requests_total{handler=\"/generate\", status=\"5xx\"}[1m])",
