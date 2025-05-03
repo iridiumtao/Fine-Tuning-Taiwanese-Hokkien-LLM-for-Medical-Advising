@@ -3,6 +3,14 @@ output "floating_ip_out" {
   value       = openstack_networking_floatingip_v2.floating_ip.address
 }
 
-output "sharednet1_port_id_node1" {
-  value = openstack_networking_port_v2.sharednet1_port_node1.id
+output "private_net_ports" {
+  value = {
+    for k, p in openstack_networking_port_v2.private_net_ports : k => p.id
+  }
+}
+
+output "sharednet1_ports" {
+  value = {
+    for k, p in openstack_networking_port_v2.sharednet1_ports : k => p.id
+  }
 }

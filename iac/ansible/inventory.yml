@@ -1,17 +1,16 @@
 all:
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa_chameleon
+    ansible_user: cc
   hosts:
     node1:
-      # ansible_host: 192.5.87.164
-      # ansible_user: cc
-      # ansible_ssh_private_key_file: ~/.ssh/id_rsa_chameleon
-      ansible_host: 192.168.1.11
-      ansible_user: cc
+      ansible_host: 192.5.87.164
     node2:
       ansible_host: 192.168.1.12
-      ansible_user: cc
+      ansible_ssh_common_args: >
+        -o ProxyCommand="ssh -W %h:%p -i ~/.ssh/id_rsa_chameleon cc@<floating-ip-of-node1>"
     node3:
       ansible_host: 192.168.1.13
-      ansible_user: cc
-
+      ansible_ssh_common_args: >
+        -o ProxyCommand="ssh -W %h:%p -i ~/.ssh/id_rsa_chameleon cc@<floating-ip-of-node1>"     
