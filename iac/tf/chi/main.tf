@@ -40,3 +40,25 @@ resource "openstack_networking_floatingip_v2" "floating_ip" {
   description = "MLOps IP for ${var.suffix}"
   port_id     = openstack_networking_port_v2.sharednet1_ports["node1"].id
 }
+
+resource "openstack_compute_instance_v2" "nodes" {
+  for_each    = var.nodes
+  name        = "${each.key}-mlops-${var.suffix}"
+  image_name  = "CC-Ubuntu24.04-CUDA"
+  flavor_name = "baremetal"
+  key_pair    = var.key
+
+  scheduler_hints = {
+    reservation = var.node_reservations[each.key]
+  }
+
+  network {
+    port = openstack_networking_port_v2.private_net_ports[each.key].id
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    echo "127.0.1.1 ${each.key}-mlops-${var.suffix}" >> /etc/hosts
+    su cc -c /usr/local/bin/cc-load-public-keys
+  EOF
+}
