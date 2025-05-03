@@ -41,8 +41,8 @@
         dest: /etc/docker/daemon.json
         content: |
           {
-            "registry-mirrors": ["http://kvm-dyn-129-114-25-196.tacc.chameleoncloud.org:5000"],
-            "insecure-registries": ["{{ insecure_registry }}", "kvm-dyn-129-114-25-196.tacc.chameleoncloud.org:5000"]
+            "registry-mirrors": ["http://192.5.87.164:5000"],
+            "insecure-registries": ["{{ insecure_registry }}", "192.5.87.164:5000"]
           }
         owner: root
         group: root
