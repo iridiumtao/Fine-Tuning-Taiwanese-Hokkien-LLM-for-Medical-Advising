@@ -22,23 +22,22 @@ resource "openstack_networking_port_v2" "private_net_ports" {
   }
 }
 
-resource "openstack_networking_port_v2" "sharednet1_ports" {
-  for_each   = var.nodes
-    name       = "sharednet1-${each.key}-mlops-${var.suffix}"
-    network_id = data.openstack_networking_network_v2.sharednet1.id
-    security_group_ids = [
-      data.openstack_networking_secgroup_v2.allow_ssh.id,
-      data.openstack_networking_secgroup_v2.allow_8000.id,
-      data.openstack_networking_secgroup_v2.allow_8888.id,
-      data.openstack_networking_secgroup_v2.allow_9090.id,
-      data.openstack_networking_secgroup_v2.allow_3000.id
-    ]
+resource "openstack_networking_port_v2" "sharednet1_port_node1" {
+  name       = "sharednet1-node1-mlops-${var.suffix}"
+  network_id = data.openstack_networking_network_v2.sharednet1.id
+  security_group_ids = [
+    data.openstack_networking_secgroup_v2.allow_ssh.id,
+    data.openstack_networking_secgroup_v2.allow_8000.id,
+    data.openstack_networking_secgroup_v2.allow_8888.id,
+    data.openstack_networking_secgroup_v2.allow_9090.id,
+    data.openstack_networking_secgroup_v2.allow_3000.id
+  ]
 }
 
 resource "openstack_networking_floatingip_v2" "floating_ip" {
   pool        = "public"
   description = "MLOps IP for ${var.suffix}"
-  port_id     = openstack_networking_port_v2.sharednet1_ports["node1"].id
+  port_id     = openstack_networking_port_v2.sharednet1_port_node1.id
 }
 
 resource "openstack_compute_instance_v2" "nodes" {

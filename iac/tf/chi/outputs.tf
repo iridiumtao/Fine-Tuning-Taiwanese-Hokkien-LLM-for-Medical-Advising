@@ -4,5 +4,5 @@ output "floating_ip_out" {
 }
 
 output "sharednet1_port_id_node1" {
-  value = openstack_networking_port_v2.sharednet1_ports["node1"].id
+  value = openstack_networking_port_v2.sharednet1_port_node1.id
 }
