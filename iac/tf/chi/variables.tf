@@ -18,8 +18,3 @@ variable "nodes" {
     "node3" = "192.168.1.13"
   }
 }
-
-variable "node_reservations" {
-  description = "Map of node names to lease reservation UUIDs"
-  type        = map(string)
-}

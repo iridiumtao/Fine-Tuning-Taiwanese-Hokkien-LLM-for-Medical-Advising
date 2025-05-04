@@ -5,12 +5,10 @@ all:
     ansible_user: cc
   hosts:
     node1:
-      ansible_host: 192.5.87.164
+      ansible_host: 192.5.87.148
     node2:
       ansible_host: 192.168.1.12
-      ansible_ssh_common_args: >
-        -o ProxyCommand="ssh -W %h:%p -i ~/.ssh/id_rsa_chameleon cc@<floating-ip-of-node1>"
+      ansible_ssh_common_args: "-o ProxyJump=cc@192.5.87.148"
     node3:
       ansible_host: 192.168.1.13
-      ansible_ssh_common_args: >
-        -o ProxyCommand="ssh -W %h:%p -i ~/.ssh/id_rsa_chameleon cc@<floating-ip-of-node1>"     
+      ansible_ssh_common_args: "-o ProxyJump=cc@192.5.87.148"
