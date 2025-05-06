@@ -10,7 +10,7 @@ import torch
 dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
 
 # === Tokenizer & Model ===
-model_id = "lbh0830/TW-Hokkien-LLM"
+model_id = "Bohanlu/Taigi-Llama-2-7B"
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 tokenizer.pad_token = tokenizer.eos_token  # required for padding
 
