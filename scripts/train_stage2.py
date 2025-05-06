@@ -7,7 +7,7 @@ from peft import LoraConfig, get_peft_model, TaskType
 import torch
 
 # === Load dataset from your combined file ===
-dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.json"})
+dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
 
 # === Tokenizer & Model ===
 model_id = "lbh0830/TW-Hokkien-LLM"
