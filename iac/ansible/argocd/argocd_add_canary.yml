@@ -1,11 +1,12 @@
 ---
-- name: Deploy Gourmetgram Canary via ArgoCD & Helm
+- name: Deploy Taiwanese-LLM Canary via ArgoCD & Helm
   hosts: node1
   become: yes
   vars:
-    app_name: gourmetgram-canary
-    repo_url: https://github.com/teaching-on-testbeds/gourmetgram-iac.git
-    app_path: k8s/canary
+    app_name: taiwanese-llm-canary
+    repo_url: https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising.git
+    repo_revision: mlops
+    app_path: iac/k8s/canary
     argocd_namespace: argocd
 
   tasks:
@@ -31,8 +32,8 @@
       set_fact:
         external_ip: "{{ ansible_all_ipv4_addresses | select('match', '^10\\.56\\..*') | list | first }}"
 
-    - name: Create gourmetgram-canary namespace if missing
-      command: kubectl create namespace gourmetgram-canary
+    - name: Create taiwanese-llm-canary namespace if missing
+      command: kubectl create namespace taiwanese-llm-canary
       register: ns_create
       failed_when: ns_create.rc != 0 and "AlreadyExists" not in ns_create.stderr
       changed_when: "'created' in ns_create.stdout"
@@ -48,6 +49,7 @@
       command: >
         argocd app create {{ app_name }} \
         --repo {{ repo_url }} \
+        --revision mlops \
         --path {{ app_path }} \
         --dest-server https://kubernetes.default.svc \
         --dest-namespace "" \

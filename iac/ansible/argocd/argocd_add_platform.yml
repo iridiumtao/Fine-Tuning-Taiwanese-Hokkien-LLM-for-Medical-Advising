@@ -4,9 +4,10 @@
   become: yes
   vars:
     argocd_username: "admin"
-    repo_path: "https://github.com/teaching-on-testbeds/gourmetgram-iac.git"
-    app_name: "gourmetgram-platform"
-    app_path: "k8s/platform"
+    repo_path: "https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising.git"
+    repo_revision: "mlops"
+    app_name: "taiwanese-llm-platform"
+    app_path: "iac/k8s/platform"
     minio_access_key: "your-access-key"
 
   tasks:
@@ -33,22 +34,23 @@
       register: repo_result
       changed_when: "'Repository already exists' not in repo_result.stderr"
 
-    - name: Detect external IP starting with 10.56
+    - name: Use floating IP as external IP
       set_fact:
-        external_ip: "{{ ansible_all_ipv4_addresses | select('match', '^10\\.56\\..*') | list | first }}"
+        external_ip: "192.5.87.50"
 
-    - name: Ensure gourmetgram-platform namespace exists
-      command: kubectl get namespace gourmetgram-platform
+
+    - name: Ensure taiwanese-llm-platform namespace exists
+      command: kubectl get namespace taiwanese-llm-platform
       register: ns_check
       failed_when: false
       changed_when: false
 
-    - name: Create gourmetgram-platform namespace if missing
+    - name: Create taiwanese-llm--platform namespace if missing
       when: ns_check.rc != 0
-      command: kubectl create namespace gourmetgram-platform
+      command: kubectl create namespace taiwanese-llm-platform
 
     - name: Check if MinIO secret already exists
-      command: kubectl get secret minio-credentials -n gourmetgram-platform
+      command: kubectl get secret minio-credentials -n taiwanese-llm-platform
       register: minio_secret_check
       failed_when: false
       changed_when: false
@@ -62,7 +64,7 @@
       when: minio_secret_check.rc != 0
       command: >
         kubectl create secret generic minio-credentials
-        --namespace gourmetgram-platform
+        --namespace taiwanese-llm-platform
         --from-literal=accesskey={{ minio_access_key }}
         --from-literal=secretkey={{ minio_secret_key }}
       register: minio_secret_create
@@ -70,7 +72,7 @@
     - name: Get existing MinIO secret key if already exists
       when: minio_secret_check.rc == 0
       command: >
-        kubectl get secret minio-credentials -n gourmetgram-platform -o jsonpath="{.data.secretkey}"
+        kubectl get secret minio-credentials -n taiwanese-llm-platform -o jsonpath="{.data.secretkey}"
       register: existing_secret_b64
 
     - name: Decode existing MinIO secret key
@@ -90,6 +92,7 @@
       command: >
         argocd app create {{ app_name }} \
         --repo {{ repo_path }} \
+        --revision mlops \
         --path {{ app_path }} \
         --dest-server https://kubernetes.default.svc \
         --dest-namespace "" \
@@ -103,6 +106,7 @@
       when: app_check.rc == 0
       command: >
         argocd app set {{ app_name }} \
+        --revision mlops \
         --dest-namespace "" \
         --helm-set-string minio.externalIP={{ external_ip }} \
         --helm-set-string mlflow.externalIP={{ external_ip }} \

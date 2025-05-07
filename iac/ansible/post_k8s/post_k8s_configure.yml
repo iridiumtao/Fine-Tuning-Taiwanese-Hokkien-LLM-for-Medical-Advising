@@ -63,7 +63,16 @@
 - name: Setup Kubernetes Dashboard
   hosts: node1
   become: yes
+  become_user: cc
   tasks:
+    - name: Wait for Kubernetes API server to be ready
+      wait_for:
+        host: 127.0.0.1
+        port: 6443
+        delay: 5            # Wait 5 seconds before starting checks
+        timeout: 60         # Wait up to 60 seconds in total
+        state: started
+      become: false
     - name: Create dashboard admin-user and RBAC
       shell: |
         cat <<EOF | kubectl apply -f -
@@ -88,6 +97,8 @@
         EOF
       args:
         executable: /bin/bash
+      environment:
+        KUBECONFIG: /home/cc/.kube/config
 
     - name: Wait for Kubernetes Dashboard pod to be running
       shell: |
@@ -111,8 +122,8 @@
   hosts: node1,node2,node3
   become: yes
   tasks:
-    - name: Set DNS for interface ens4
-      command: resolvectl dns ens4 127.0.0.1
+    - name: Set DNS for correct interface
+      command: resolvectl dns {{ ansible_default_ipv4.interface }} 127.0.0.1
 
 - name: Restart CoreDNS on node1
   hosts: node1
@@ -120,6 +131,27 @@
   tasks:
     - name: Restart CoreDNS deployment
       command: kubectl -n kube-system rollout restart deployment coredns
+
+
+- name: Ensure node1 can resolve public DNS (e.g., github.com)
+  hosts: node1, node2, node3
+  become: true
+  tasks:
+    - name: Set DNS resolver to Google DNS
+      command: resolvectl dns {{ ansible_default_ipv4.interface }} 8.8.8.8
+
+    - name: Set fallback DNS resolver
+      command: resolvectl domain {{ ansible_default_ipv4.interface }} '~.'
+
+    - name: Verify DNS is working
+      command: nslookup github.com
+      register: dns_check
+      failed_when: "'Name:' not in dns_check.stdout"
+      changed_when: false
+
+    - name: Print DNS result
+      debug:
+        var: dns_check.stdout
 
 - name: Install ArgoCD CLI
   hosts: node1
@@ -130,7 +162,11 @@
         url: "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64"
         dest: "/usr/local/bin/argocd"
         mode: '0755'
-
+      retries: 3
+      delay: 10
+      register: download_result
+      until: download_result is succeeded
+      
     - name: Verify ArgoCD CLI installation
       command: argocd version --client
       register: argocd_version
@@ -139,6 +175,55 @@
     - name: Show ArgoCD version
       debug:
         msg: "{{ argocd_version.stdout_lines }}"
+
+- name: Install ArgoCD Server
+  hosts: node1
+  become: yes
+  tasks:
+    - name: Create argocd namespace
+      command: kubectl create namespace argocd
+      register: create_ns
+      failed_when: create_ns.rc != 0 and 'AlreadyExists' not in create_ns.stderr
+      changed_when: "'created' in create_ns.stdout"
+
+    - name: Apply ArgoCD core manifests
+      shell: |
+        kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      args:
+        executable: /bin/bash
+
+    - name: Wait for ArgoCD server to be ready
+      shell: |
+        kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].status.phase}'
+      register: argocd_status
+      retries: 10
+      delay: 10
+      until: argocd_status.stdout == "Running"
+
+- name: Patch ArgoCD repo-server with custom DNS
+  hosts: node1
+  become: yes
+  tasks:
+    - name: Set DNS patch JSON object
+      set_fact:
+        patch_dns_object:
+          spec:
+            template:
+              spec:
+                dnsPolicy: "ClusterFirst"
+                dnsConfig:
+                  nameservers:
+                    - "8.8.8.8"
+                  options:
+                    - name: "ndots"
+                      value: "2"
+
+    - name: Patch argocd-repo-server deployment
+      shell: >
+        kubectl -n argocd patch deploy argocd-repo-server
+        -p '{{ patch_dns_object | to_json }}'
+
+
 
 - name: Get ArgoCD admin password
   hosts: node1
