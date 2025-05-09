@@ -37,31 +37,6 @@ services:
       - GRADIO_PORT=7860
     ports:
       - "7860:7860"
-      
-  # System Metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/prometheus.yml:/etc/prometheus/prometheus.yml
-
-  # Performance Metrics
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
-      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/dashboards:/var/lib/grafana/dashboards:ro
-      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
 
   minio:
     image: minio/minio
