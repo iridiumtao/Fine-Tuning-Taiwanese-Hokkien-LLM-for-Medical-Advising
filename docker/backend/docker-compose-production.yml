@@ -22,6 +22,8 @@ services:
               capabilities: [gpu]
     ports:
       - "8000:8000"
+    networks:
+      - production_net
     volumes:
       - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
       - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/models:/app/models:ro
@@ -35,6 +37,8 @@ services:
     environment:
       - FASTAPI_SERVER_URL=http://fastapi_server:8000
       - GRADIO_PORT=7860
+    networks:
+      - production_net
     ports:
       - "7860:7860"
 
