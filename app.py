@@ -6,14 +6,17 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
-# Load model and tokenizer
-model_path = "models/stage1"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForCausalLM.from_pretrained(model_path)
+IS_DUMMY = os.getenv("IS_FASTAPI_DUMMY", 'False').lower() in ('true', 'ture', '1', 't')
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
-model.eval()
+if not IS_DUMMY:
+    # Load model and tokenizer
+    model_path = "models/stage1"
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
 
 class GenerationRequest(BaseModel):
     prompt: str
@@ -24,6 +27,9 @@ class GenerationRequest(BaseModel):
 def generate(request: GenerationRequest):
     if not request.prompt:
         raise HTTPException(status_code=400, detail="No prompt provided")
+
+    if IS_DUMMY:
+        return {"prediction": f"<|user|>\n{request.prompt}\n<|assistant|>\nThis is a dummy response.", "probability": 1.0}
 
     formatted_prompt = f"<|user|>\n{request.prompt}\n<|assistant|>\n"
     inputs = tokenizer(formatted_prompt, return_tensors="pt").to(device)
@@ -41,6 +47,6 @@ def generate(request: GenerationRequest):
         )
 
     generated = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    return {"prediction": generated, "probability": 1.0}  
+    return {"prediction": generated, "probability": 1.0}
 
 Instrumentator().instrument(app).expose(app)

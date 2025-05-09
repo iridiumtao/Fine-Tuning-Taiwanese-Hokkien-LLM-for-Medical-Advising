@@ -13,6 +13,7 @@ services:
     container_name: fastapi_server
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      - IS_FASTAPI_DUMMY=True
     deploy:
       resources:
         reservations:
