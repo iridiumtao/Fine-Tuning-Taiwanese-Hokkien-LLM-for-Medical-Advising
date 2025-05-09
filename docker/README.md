@@ -90,7 +90,28 @@ docker compose -f ./docker/feedback_loop/docker-compose-feedback.yml up --build 
 
 ---
 
-## 📂 **Volumes and Data Persistence**
+## 🔑 **Default Login Credentials**
+
+| Service      | Username                | Password    |
+|--------------|-------------------------|-------------|
+| Label Studio | labelstudio@example.com | labelstudio |
+| Airflow      | airflow@example.com     | airflow     |
+| Grafana      | admin                   | admin       |
+
+To access **Jupyter Notebook**, run the following command and look for the login URL:
+
+```bash
+docker logs jupyter
+```
+Look for
+```
+http://127.0.0.1:8888/lab?token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+Substitute `127.0.0.1` with the floating IP assigned to your instance to open the Jupyter Lab interface.
+
+---
+
+## 📂 **WIP Volumes and Data Persistence**
 
 * `/app/models`: Mounted as read-only for model access.
 * `minio_data`: Persistent volume for MinIO object storage.
