@@ -1,12 +1,12 @@
-# docker-compose.yml
+# docker-compose-production.yml
 version: "3.8"
 
 services:
   # back-end
   fastapi_server:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: ../Dockerfile
       args:
         # put huggingface token in .env file or .bachrc
         HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
@@ -28,7 +28,7 @@ services:
   # front-end web service
   gradio:
     build:
-      context: ./web    
+      context: ../web
     container_name: gradio
     environment:
       - FASTAPI_SERVER_URL=http://fastapi_server:8000
