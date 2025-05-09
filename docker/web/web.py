@@ -5,10 +5,10 @@ import requests
 import os
 
 FASTAPI_SERVER_URL = os.getenv("FASTAPI_SERVER_URL", "http://127.0.0.1:8000")
-
+GRADIO_PORT = int(os.getenv("GRADIO_PORT", "7860"))
 
 def chat_with_model(message, history, temperature, top_p):
-    # request Flask API
+    # request fast API
     payload = {
         "prompt": message,
         "temperature": temperature,
@@ -45,4 +45,4 @@ with gr.Blocks() as web:
         outputs=[chatbot, msg]
     )
 
-web.launch(server_name="0.0.0.0", server_port=7860)
+web.launch(server_name="0.0.0.0", server_port=GRADIO_PORT)

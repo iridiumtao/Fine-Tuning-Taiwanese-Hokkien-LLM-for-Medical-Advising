@@ -53,8 +53,9 @@ docker compose -f ./docker/feedback_loop/docker-compose-labelstudio.yml down
 
 **Endpoints:**
 
-* Airflow → [http://localhost:8080](http://localhost:8080)
-* Label Studio → [http://localhost:8081](http://localhost:8081)
+* Airflow → [http://localhost:8081](http://localhost:8081)
+* Label Studio → [http://localhost:8080](http://localhost:8080)
+  * Label Studio Jupyter Notebook Port: 8888
 
 ---
 

@@ -1,4 +1,4 @@
-# /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/backend/docker-compose-production.yml
+# /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/backend/Dockerfile
 # Dockerfile
 FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
