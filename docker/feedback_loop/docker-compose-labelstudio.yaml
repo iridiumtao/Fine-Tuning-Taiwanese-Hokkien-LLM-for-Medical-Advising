@@ -6,7 +6,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /home/cc/eval-loop-chi/scripts:/label-studio/scripts
+      # What is this?
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/labelstudio:/label-studio/scripts
     environment:
       - LABEL_STUDIO_URL=http://label-studio:8080
       - LABEL_STUDIO_USERNAME=labelstudio@example.com
@@ -20,13 +21,13 @@ services:
     networks:
       - production_net
 
-  jupyter:
+  jupyter: # to test labelstudio
     image: quay.io/jupyter/minimal-notebook:latest
     container_name: jupyter
     ports:
       - "8888:8888"
     volumes:
-      - /home/cc/eval-loop-chi/workspace:/home/jovyan/work # mount workspace
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/scripts/labelstudio:/home/jovyan/work # mount workspace
     environment:
       - MINIO_URL=http://minio:9000 # let Flask app know where to access the object store
       - MINIO_USER=your-access-key
