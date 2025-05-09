@@ -30,6 +30,10 @@ def chat_with_model(message, history, temperature, top_p):
         "temperature": temperature,
         "top_p": top_p
     }
+    session_id = str(uuid.uuid4())  # New session ID for each conversation
+    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    s3_key = f"conversation_logs/{session_id}.json"
+
     try:
         response = requests.post(f"{FASTAPI_SERVER_URL}/generate", json=payload)
         response.raise_for_status()
@@ -42,24 +46,19 @@ def chat_with_model(message, history, temperature, top_p):
         model_response = reply
     except Exception as e:
         model_response = f"Error: {e}"
-    
+
+    # Append to history
     history.append((message, model_response))
-    return history, ""
 
-def upload_feedback_to_s3(prompt, response, feedback_type, confidence):
-    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    feedback_id = str(uuid.uuid4())
-    s3_key = f"feedback/{feedback_id}.json"
-
+    # === MinIO ===
     feedback_data = {
-        "prompt": prompt,
-        "response": response,
-        "feedback_type": feedback_type,
-        "confidence": confidence,
+        "prompt": message,
+        "response": model_response,
+        "feedback_type": "none", # default, no feedback received yet
+        "confidence": '1.000',
         "timestamp": timestamp
     }
 
-    # Upload to MinIO
     s3.put_object(
         Bucket=BUCKET_NAME,
         Key=s3_key,
@@ -72,10 +71,30 @@ def upload_feedback_to_s3(prompt, response, feedback_type, confidence):
         Key=s3_key,
         Tagging={
             'TagSet': [
+                {'Key': 'session_id', 'Value': session_id},
                 {'Key': 'processed', 'Value': 'false'},
-                {'Key': 'feedback_type', 'Value': feedback_type},
-                {'Key': 'confidence', 'Value': f"{confidence:.3f}"},
+                {'Key': 'feedback_type', 'Value': 'none'},
+                {'Key': 'confidence', 'Value': '1.000'},
                 {'Key': 'timestamp', 'Value': timestamp}
+            ]
+        }
+    )
+
+    return history, ""
+
+
+def upload_feedback_to_s3(prompt, response, feedback_type, confidence):
+    s3_key = f"conversation_logs/{session_id}.json"
+
+    # update tagging
+    s3.put_object_tagging(
+        Bucket=BUCKET_NAME,
+        Key=s3_key,
+        Tagging={
+            'TagSet': [
+                {'Key': 'processed', 'Value': 'true'},
+                {'Key': 'feedback_type', 'Value': feedback_type},
+                {'Key': 'confidence', 'Value': f"{confidence:.3f}"}
             ]
         }
     )
@@ -100,7 +119,6 @@ with gr.Blocks() as web:
     with gr.Row():
         like_btn = gr.Button("👍回應良好 / hue5-ing3 liong5-ho2 / Good Response")
         dislike_btn = gr.Button("👎回應無好 / hue5-ing3 bo5 ho2 / Bad Response")
-        flag_btn = gr.Button("🚩標記 / piau1-ki3 / Flag")
 
     like_btn.click(
         lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "like", confidence=1),
@@ -110,12 +128,6 @@ with gr.Blocks() as web:
 
     dislike_btn.click(
         lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "dislike", confidence=1),
-        inputs=[chatbot],
-        outputs=[]
-    )
-
-    flag_btn.click(
-        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "flag", confidence=1),
         inputs=[chatbot],
         outputs=[]
     )

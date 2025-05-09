@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 import boto3
 import os
 from botocore.exceptions import ClientError
-import random
 import requests
 
 default_args = {
@@ -131,7 +130,7 @@ def sample_production_responses(**context):
     context['ti'].xcom_push(key='all_responses', value=low_conf + flagged + good_responses)
 
 
-def move_sampled_images(**context):
+def move_sampled_responses(**context):
     s3 = boto3.client(
         's3',
         endpoint_url=os.environ['MINIO_URL'],
@@ -140,8 +139,8 @@ def move_sampled_images(**context):
         region_name="us-east-1"
     )
 
-    selected = context['ti'].xcom_pull(key='selected_images', task_ids='sample_production_images')
-    all_items = context['ti'].xcom_pull(key='all_images', task_ids='sample_production_images')
+    selected = context['ti'].xcom_pull(key='selected_responses', task_ids='sample_production_responses')
+    all_items = context['ti'].xcom_pull(key='all_responses', task_ids='sample_production_responses')
     selected_keys = {item['key'] for item in selected}
 
     for item in all_items:
@@ -149,10 +148,9 @@ def move_sampled_images(**context):
         target_bucket = 'production-label-wait' if source_key in selected_keys else 'production-noisy'
         s3.copy_object(
             Bucket=target_bucket,
-            CopySource={'Bucket': 'production', 'Key': source_key},
+            CopySource={'Bucket': 'production-responses', 'Key': source_key},
             Key=source_key
         )
-        # s3.delete_object(Bucket='production', Key=source_key)
 
 
 def create_label_studio_project(**context):
@@ -172,7 +170,7 @@ def create_label_studio_project(**context):
     label_config = """
     <View>
       <Text name="response_text" value="$response" />
-      <Choices name="label" toName="response_text" choice="single" showInLine="true" >
+      <Choices name="label" toName="response_text" choice="single" showInLine="true">
         <Choice value="Good Response"/>
         <Choice value="Bad Response"/>
       </Choices>
@@ -221,7 +219,7 @@ def send_tasks_to_label_studio(**context):
             "meta": {"original_key": item['key']}
         })
 
-    response = requests.post(
+    requests.post(
         f"{label_studio_url}/api/projects/{project_id}/import",
         json=tasks,
         headers=headers
@@ -241,14 +239,14 @@ with DAG(
         python_callable=init_buckets_task
     )
 
-    sample_production_images_task = PythonOperator(
-        task_id='sample_production_images',
+    sample_production_responses_task = PythonOperator(
+        task_id='sample_production_responses',
         python_callable=sample_production_responses
     )
 
-    move_sampled_images_task = PythonOperator(
-        task_id='move_sampled_images',
-        python_callable=move_sampled_images
+    move_sampled_responses_task = PythonOperator(
+        task_id='move_sampled_responses',
+        python_callable=move_sampled_responses
     )
 
     create_project_task = PythonOperator(
@@ -261,5 +259,5 @@ with DAG(
         python_callable=send_tasks_to_label_studio
     )
 
-    init_buckets >> sample_production_images_task >> move_sampled_images_task
-    [move_sampled_images_task, create_project_task] >> label_studio_task
+    init_buckets >> sample_production_responses_task >> move_sampled_responses_task
+    [move_sampled_responses_task, create_project_task] >> label_studio_task
