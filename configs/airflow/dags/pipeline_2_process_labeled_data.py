@@ -12,7 +12,7 @@ MINIO_URL = os.environ['MINIO_URL']
 MINIO_USER = os.environ['MINIO_USER']
 MINIO_PASSWORD = os.environ['MINIO_PASSWORD']
 
-PROJECT_NAME = "Food11 Continuous X"
+PROJECT_NAME = "Taigi Medical LLM"
 
 # S3 Client
 s3 = boto3.client(
@@ -49,15 +49,15 @@ def get_label_studio_results(**context):
     context['ti'].xcom_push(key='project_id', value=project_id)
 
 def process_labeled_data_minio(**context):
-    ensure_bucket("production-clean")
-    ensure_bucket("production-noisy")
+    ensure_bucket("production-good-responses")
+    ensure_bucket("production-bad-responses")
+
 
     completed_tasks = context['ti'].xcom_pull(key='completed_tasks', task_ids='get_label_studio_results')
 
     CLASSES = [
-        "Bread", "Dairy product", "Dessert", "Egg", "Fried food",
-        "Meat", "Noodles/Pasta", "Rice", "Seafood", "Soup",
-        "Vegetable/Fruit"
+        "Good Response",
+        "Bad Response"
     ]
 
     for task in completed_tasks:
@@ -69,20 +69,16 @@ def process_labeled_data_minio(**context):
             filename = original_key.split("/")[-1]
             new_key = f"{class_dir}/{filename}"
 
-            # Copy to production-clean
-            copy_source = {'Bucket': 'production-label-wait', 'Key': original_key}
+            # Copy to production-good-responses or production-bad-responses
+            target_bucket = "production-good-responses" if label == "Good Response" else "production-bad-responses"
+            copy_source = {'Bucket': 'production-responses', 'Key': original_key}
+
             s3.copy_object(
-                Bucket='production-clean',
+                Bucket=target_bucket,
                 CopySource=copy_source,
-                Key=new_key
+                Key=original_key
             )
 
-            # Copy to production-noisy
-            s3.copy_object(
-                Bucket='production-noisy',
-                CopySource=copy_source,
-                Key=new_key
-            )
 
             # Preserve tags
             tags = s3.get_object_tagging(
@@ -96,15 +92,15 @@ def process_labeled_data_minio(**context):
 
             # Delete from production-label-wait
             try:
-                s3.head_object(Bucket='production-label-wait', Key=original_key)
-                s3.delete_object(Bucket='production-label-wait', Key=original_key)
+                s3.head_object(Bucket='production-responses', Key=original_key)
+                s3.delete_object(Bucket='production-responses', Key=original_key)
             except s3.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == "404":
                     print(f"Object not found for deletion: {original_key}")
                 else:
                     raise
 
-            print(f"Processed {original_key} → new key '{new_key}' with label '{label}'")
+            print(f"Processed {original_key} → new bucket '{target_bucket}' with label '{label}'")
 
         except Exception as e:
             print(f"Error processing task {task.get('id')} (maybe this object was not labeled yet): {e}")
