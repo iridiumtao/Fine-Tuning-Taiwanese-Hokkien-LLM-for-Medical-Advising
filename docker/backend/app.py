@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import os
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
@@ -10,7 +11,7 @@ IS_DUMMY = os.getenv("IS_FASTAPI_DUMMY", 'False').lower() in ('true', 'ture', '1
 
 if not IS_DUMMY:
     # Load model and tokenizer
-    model_path = "models/stage1"
+    model_path = "./models/stage1" # todo: potential problem!!!
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(model_path)
 

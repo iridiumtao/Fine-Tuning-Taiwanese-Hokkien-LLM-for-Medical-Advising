@@ -1,3 +1,4 @@
+# /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/backend/docker-compose-production.yml
 # Dockerfile
 FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
@@ -6,13 +7,6 @@ WORKDIR /app
 COPY requirements-serve.txt .
 
 RUN pip install -r requirements-serve.txt
-
-# RUN pip install sentencepiece --prefer-binary \
-#     && pip install datasets
-    
-    #&& pip install bitsandbytes --force-reinstall --no-cache-dir
-
-COPY models/ ./models/
 
 COPY app.py ./app.py
 

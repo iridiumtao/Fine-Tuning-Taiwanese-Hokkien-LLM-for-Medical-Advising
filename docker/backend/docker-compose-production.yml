@@ -1,12 +1,11 @@
-# docker-compose-production.yml
-version: "3.8"
+# ./docker/backend/docker-compose-production.yml
 
 services:
   # back-end
   fastapi_server:
     build:
-      context: ..
-      dockerfile: ../Dockerfile
+      context: /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/backend
+      dockerfile: Dockerfile
       args:
         # put huggingface token in .env file or .bachrc
         HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
@@ -25,11 +24,13 @@ services:
       - "8000:8000"
     volumes:
       - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/models:/app/models:ro
 
   # front-end web service
   gradio:
     build:
-      context: ../web
+      context: /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/web
+      dockerfile: Dockerfile
     container_name: gradio
     environment:
       - FASTAPI_SERVER_URL=http://fastapi_server:8000
@@ -43,7 +44,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/prometheus.yml:/etc/prometheus/prometheus.yml
 
   # Performance Metrics
   grafana:
@@ -57,9 +58,9 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - ./configs/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
-      - ./configs/dashboards:/var/lib/grafana/dashboards:ro
-      - ./configs/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/dashboards:/var/lib/grafana/dashboards:ro
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
 
   minio:
     image: minio/minio
