@@ -1,3 +1,5 @@
+# ./docker/feedback_loop/docker-compose-labelstudio.yml
+
 name: label-studio
 services:
   label-studio:

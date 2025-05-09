@@ -43,10 +43,12 @@ docker compose -f ./docker/backend/docker-compose-production.yml down
 
 ```bash
 # Start the feedback loop services
-docker compose -f ./docker/feedback_loop/docker-compose-feedback.yml up --build -d
+docker compose -f ./docker/feedback_loop/docker-compose-airflow.yml up --build -d
+docker compose -f ./docker/feedback_loop/docker-compose-labelstudio.yml up --build -d
 
 # Stop the feedback loop services
-docker compose -f ./docker/feedback_loop/docker-compose-feedback.yml down
+docker compose -f ./docker/feedback_loop/docker-compose-airflow.yml down
+docker compose -f ./docker/feedback_loop/docker-compose-labelstudio.yml down
 ```
 
 **Endpoints:**
