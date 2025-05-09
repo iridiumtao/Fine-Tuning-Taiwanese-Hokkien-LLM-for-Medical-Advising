@@ -46,7 +46,7 @@ def chat_with_model(message, history, temperature, top_p):
     history.append((message, model_response))
     return history, ""
 
-def upload_feedback_to_s3(prompt, response, feedback_type):
+def upload_feedback_to_s3(prompt, response, feedback_type, confidence):
     timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     feedback_id = str(uuid.uuid4())
     s3_key = f"feedback/{feedback_id}.json"
@@ -55,6 +55,7 @@ def upload_feedback_to_s3(prompt, response, feedback_type):
         "prompt": prompt,
         "response": response,
         "feedback_type": feedback_type,
+        "confidence": confidence,
         "timestamp": timestamp
     }
 
@@ -66,6 +67,20 @@ def upload_feedback_to_s3(prompt, response, feedback_type):
         ContentType='application/json'
     )
 
+    s3.put_object_tagging(
+        Bucket=BUCKET_NAME,
+        Key=s3_key,
+        Tagging={
+            'TagSet': [
+                {'Key': 'processed', 'Value': 'false'},
+                {'Key': 'feedback_type', 'Value': feedback_type},
+                {'Key': 'confidence', 'Value': f"{confidence:.3f}"},
+                {'Key': 'timestamp', 'Value': timestamp}
+            ]
+        }
+    )
+
+
 with gr.Blocks() as web:
     gr.Markdown("# Fine-tuned LLM Chatbot")
     chatbot = gr.Chatbot()
@@ -73,7 +88,7 @@ with gr.Blocks() as web:
     with gr.Row():
         temp = gr.Slider(0, 1, value=0.7, label="Temperature")
         top_p = gr.Slider(0, 1, value=0.95, label="Top-p (Nucleus Sampling)")
-    send = gr.Button("Submit")
+    send = gr.Button("送出 / sang3 tshut4 / Submit")
 
     send.click(
         chat_with_model,
@@ -88,19 +103,19 @@ with gr.Blocks() as web:
         flag_btn = gr.Button("🚩標記 / piau1-ki3 / Flag")
 
     like_btn.click(
-        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "like"),
+        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "like", confidence=1),
         inputs=[chatbot],
         outputs=[]
     )
 
     dislike_btn.click(
-        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "dislike"),
+        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "dislike", confidence=1),
         inputs=[chatbot],
         outputs=[]
     )
 
     flag_btn.click(
-        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "flag"),
+        lambda history: upload_feedback_to_s3(history[-1][0], history[-1][1], "flag", confidence=1),
         inputs=[chatbot],
         outputs=[]
     )
