@@ -6,7 +6,7 @@
     repo_url: https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising.git
     repo_dest: /tmp/iac
     repo_revision: mlops
-    workflow_dir: workflows
+    workflow_dir: iac/workflows
     argo_namespace: argo
     templates:
       - build-container-image.yaml

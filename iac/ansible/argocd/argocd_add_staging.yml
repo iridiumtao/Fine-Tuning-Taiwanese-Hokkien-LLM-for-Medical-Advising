@@ -28,9 +28,9 @@
         --grpc-web --port-forward --port-forward-namespace={{ argocd_namespace }}
       changed_when: false
 
-    - name: Detect external IP starting with 10.56
+    - name: Manually set external IP
       set_fact:
-        external_ip: "{{ ansible_all_ipv4_addresses | select('match', '^10\\.56\\..*') | list | first }}"
+        external_ip: "192.5.87.178"
 
     - name: Create taiwanese-llm-staging namespace if missing
       command: kubectl create namespace taiwanese-llm-staging

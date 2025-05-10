@@ -5,7 +5,7 @@ image:
   tag: production-1.0.0
 
 service:
-  port: 80
+  port: 7860
   externalIP: ""   # Placeholder
 
 resources:

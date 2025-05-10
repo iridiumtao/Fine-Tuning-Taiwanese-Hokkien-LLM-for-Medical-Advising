@@ -3,21 +3,45 @@
   become: yes
   vars:
     repo_url: https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising.git
-    repo_dest: /tmp/iac
-    version: mlops
-    workflow_file: workflows/build-initial.yaml   
+    iac_dest: /tmp/iac
+    web_dest: /tmp/web
+    workflow_file: iac/workflows/build-initial.yaml   
     workflow_name: build-initial
     argo_namespace: argo
 
   tasks:
-    - name: Clone or update iac repo
+    - name: Clone or update iac repo(mlops branch)
       git:
         repo: "{{ repo_url }}"
-        dest: "{{ repo_dest }}"
-        version: "{{ version }}"
+        dest: "{{ iac_dest }}"
+        version: mlops
+    
+    - name: Clone only web directory from serving-eval branch
+      shell: |
+        rm -rf {{ web_dest }} && mkdir -p {{ web_dest }}
+        cd {{ web_dest }}
+        git init
+        git remote add origin {{ repo_url }}
+        git config core.sparseCheckout true
+        echo "web/" > .git/info/sparse-checkout
+        git pull --depth=1 origin serving-eval
+      args:
+        executable: /bin/bash
+    
+    - name: Build Docker image for taiwanese-llm-app
+      shell: |
+        docker build -t yixuan0760/taiwanese-llm-app:staging-1.0.0 {{ web_dest }}/web
+      args:
+        executable: /bin/bash
+
+    - name: Push Docker image to DockerHub
+      shell: |
+        docker push yixuan0760/taiwanese-llm-app:staging-1.0.0
+      args:
+        executable: /bin/bash
 
     - name: Submit Argo Workflow
-      command: kubectl -n {{ argo_namespace }} create -f {{ repo_dest }}/{{ workflow_file }}
+      command: kubectl -n {{ argo_namespace }} create -f {{ iac_dest }}/{{ workflow_file }}
       register: workflow_submit
 
     - name: Extract Workflow Name
