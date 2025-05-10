@@ -1,0 +1,73 @@
+# ./docker/backend/docker-compose-production.yml
+
+services:
+  # back-end
+  fastapi_server:
+    build:
+      context: /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/backend
+      dockerfile: Dockerfile
+      args:
+        # put huggingface token in .env file or .bachrc
+        HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN}
+    container_name: fastapi_server
+    environment:
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      - IS_FASTAPI_DUMMY=True
+    ports:
+      - "8000:8000"
+    networks:
+      - production_net
+    volumes:
+      - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
+      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/models:/app/models:ro
+
+  # front-end web service
+  gradio:
+    build:
+      context: /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/docker/web
+      dockerfile: Dockerfile
+    container_name: gradio
+    environment:
+      - FASTAPI_SERVER_URL=http://fastapi_server:8000
+      - GRADIO_PORT=7860
+    networks:
+      - production_net
+    ports:
+      - "7860:7860"
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=your-access-key
+      - MINIO_ROOT_PASSWORD=your-secret-key
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ':9001'
+    networks:
+      - production_net
+
+  minio-init:
+    image: minio/mc
+    container_name: minio_init
+    depends_on:
+      - minio
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5 &&
+      mc alias set myminio http://minio:9000 your-access-key your-secret-key &&
+      mc mb -p myminio/production || echo 'Bucket already exists'
+      "
+    networks:
+      - production_net
+
+networks:
+  production_net:
+    external: true
+
+volumes:
+  minio_data:
