@@ -169,14 +169,18 @@ def create_label_studio_project(**context):
 
     label_config = """
     <View>
-      <Text name="response_text" value="$response" />
-      <Choices name="label" toName="response_text" choice="single" showInLine="true">
-        <Choice value="Good Response"/>
-        <Choice value="Bad Response"/>
-      </Choices>
-      <Header value="Model Confidence: $confidence"/>
-      <Header value="Predicted Class: $predicted_class"/>
-      <Header value="Corrected Class: $corrected_class"/>
+      <Text name="prompt" value="$prompt"/>
+      <Text name="response" value="$response"/>
+      <View style="box-shadow: 2px 2px 5px #999;
+                   padding: 20px; margin-top: 2em;
+                   border-radius: 5px;">
+        <Header value="Choose text sentiment"/>
+        <Choices name="sentiment" toName="response"
+                 choice="single" showInLine="true">
+          <Choice value="Good Response"/>
+          <Choice value="Bad Response"/>
+        </Choices>
+      </View>
     </View>
     """
     payload = {
@@ -213,9 +217,7 @@ def send_tasks_to_label_studio(**context):
     tasks = []
     for item in all_responses:
         tasks.append({
-            "data": {
-                "response": item['response']
-            },
+            "data": item,
             "meta": {"original_key": item['key']}
         })
 
