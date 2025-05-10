@@ -92,11 +92,12 @@ docker compose -f ./docker/feedback_loop/docker-compose-feedback.yml up --build 
 
 ## 🔑 **Default Login Credentials**
 
-| Service      | Username                | Password    |
-|--------------|-------------------------|-------------|
-| Label Studio | labelstudio@example.com | labelstudio |
-| Airflow      | airflow@example.com     | airflow     |
-| Grafana      | admin                   | admin       |
+| Service      | Username                | Password        |
+|--------------|-------------------------|-----------------|
+| Label Studio | labelstudio@example.com | labelstudio     |
+| Airflow      | airflow@example.com     | airflow         |
+| Grafana      | admin                   | admin           |
+| MinIO        | your-access-key         | your-secret-key |
 
 To access **Jupyter Notebook**, run the following command and look for the login URL:
 
