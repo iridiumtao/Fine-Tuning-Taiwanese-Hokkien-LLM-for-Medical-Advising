@@ -27,11 +27,10 @@ s3 = boto3.client(
 def chat_with_model(message, history, temperature, top_p, session_id):
     """
     Send a prompt to the FastAPI LLM server, log the conversation to S3,
-    and maintain a persistent session_id across multiple calls.
+    and always create a new session_id for each call.
     """
-    # Determine session_id: reuse if exists, otherwise create new
-    if not session_id:
-        session_id = str(uuid.uuid4())
+    # Always generate a fresh session_id per request
+    session_id = str(uuid.uuid4())
 
     # Prepare payload for FastAPI
     payload = {
@@ -66,7 +65,7 @@ def chat_with_model(message, history, temperature, top_p, session_id):
         "timestamp": timestamp
     }
 
-    # Upload or overwrite the conversation log
+    # Upload the conversation log
     s3.put_object(
         Bucket=BUCKET_NAME,
         Key=s3_key,
@@ -94,7 +93,7 @@ def chat_with_model(message, history, temperature, top_p, session_id):
 
 def upload_feedback_to_s3(prompt, response, feedback_type, confidence, session_id):
     """
-    Update the tagging of an existing conversation log in S3 when user gives feedback.
+    Update tagging of the specific conversation log when user gives feedback.
     """
     s3_key = f"conversation_logs/{session_id}.json"
     # Fetch existing tags
@@ -106,7 +105,7 @@ def upload_feedback_to_s3(prompt, response, feedback_type, confidence, session_i
         'feedback_type': feedback_type,
         'confidence': f"{confidence:.3f}"
     })
-    # Apply merged tags
+
     tag_set = [{'Key': k, 'Value': v} for k, v in tags.items()]
     s3.put_object_tagging(Bucket=BUCKET_NAME, Key=s3_key, Tagging={'TagSet': tag_set})
 
@@ -121,14 +120,14 @@ with gr.Blocks() as web:
     send = gr.Button("送出 / sang3 tshut4 / Submit")
     session_state = gr.State("")  # 存 session_id
 
-    # Chat callback (return history, clear input, persist session_id)
+    # Each send click gets a new session_id
     send.click(
         fn=chat_with_model,
         inputs=[msg, chatbot, temp, top_p, session_state],
         outputs=[chatbot, msg, session_state]
     )
 
-    # Feedback buttons
+    # Feedback buttons carry the session_id of the just-completed turn
     with gr.Row():
         like_btn = gr.Button("👍回應良好 / hue5-ing3 liong5-ho2 / Good Response")
         dislike_btn = gr.Button("👎回應無好 / hue5-ing3 bo5 ho2 / Bad Response")
