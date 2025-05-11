@@ -141,11 +141,11 @@ def check_status(session_id: str):
     tag_map = {t['Key']: t['Value'] for t in tags}
 
     # status
-    if tag_map.get("status") == "approved":
+    if tag_map.get("status").lower() == "approved":
         body = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)['Body'].read()
         data = json.loads(body)
         return {"status": "approved", "response": data["response"]}
-    elif tag_map.get("status") == "rejected":
+    elif tag_map.get("status").lower() == "rejected":
         return {"status": "rejected", "reason": tag_map.get("doctor_comment", "")}
     else:
         return {"status": "pending"}
