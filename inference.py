@@ -46,7 +46,7 @@ probs = F.softmax(logits, dim =- 1)
 confidences = probs[range(len(generated_ids)), generated_ids]
 
 # Decode
-generated = tokenizer.decode(output_ids[0], skip_special_tokens = True)
+generated = tokenizer.decode(output_ids.sequences[0], skip_special_tokens=True)
 print("\nModel Response:\n", generated)
 
 print("\n=== Confidence per token ===")
