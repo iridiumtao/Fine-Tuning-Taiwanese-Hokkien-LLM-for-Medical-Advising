@@ -11,9 +11,9 @@
   "log_history": [
     {
       "epoch": 0.6666666666666666,
-      "grad_norm": 0.9498301148414612,
-      "learning_rate": 4.111111111111111e-05,
-      "loss": 3.1278,
+      "grad_norm": 1.7327278852462769,
+      "learning_rate": 4e-05,
+      "loss": 3.1214,
       "step": 10
     }
   ],
