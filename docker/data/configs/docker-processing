@@ -1,0 +1,25 @@
+FROM quay.io/jupyter/pytorch-notebook:pytorch-2.5.1
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    sudo \
+    unzip \
+    && \
+    curl https://rclone.org/install.sh | sudo bash && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    datasets
+
+RUN mkdir -p /home/jovyan/.config/rclone && \
+    chown -R ${NB_UID}:${NB_GID} /home/jovyan/.config
+
+USER ${NB_UID}
+
+WORKDIR /home/jovyan/work

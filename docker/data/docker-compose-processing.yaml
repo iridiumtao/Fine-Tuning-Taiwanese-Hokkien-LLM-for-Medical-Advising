@@ -1,0 +1,30 @@
+name: jupyter_data_processing
+
+services:
+  jupyter:
+    build:
+      context: ./configs
+      dockerfile: docker-processing
+    container_name: jupyter_processing
+    ports:
+      - "8888:8888"
+    shm_size: 8g
+    environment:
+      - DATA_DIR=/mnt/data46
+      - RCLONE_CONTAINER=${RCLONE_CONTAINER}
+      - ~/jupyter_processing_workspace:/home/jovyan/work/
+
+    volumes:
+      - ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/workspace:/home/jovyan/work/
+      - type: bind
+        source: /mnt/object
+        target: /mnt/data46
+        read_only: true
+      - type: bind
+        source: /mnt/object
+        target: /mnt/data46
+        read_only: true
+      - /mnt/object:/mnt/source_object_data:ro
+      - ~/.config/rclone/rclone.conf:/home/jovyan/.config/rclone/rclone.conf:ro
+    command: >
+      start-notebook.sh
