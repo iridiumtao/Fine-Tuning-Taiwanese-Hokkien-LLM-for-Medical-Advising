@@ -51,6 +51,7 @@ class GenerationRequest(BaseModel):
     temperature: float = 0.7
     top_p: float = 0.95
     session_id: str
+    timestamp: str
 
 
 def _generate(request: GenerationRequest):
@@ -83,11 +84,18 @@ def generate(request: GenerationRequest):
     if IS_HUMAN_APPROVE_LAYER:
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        reply = _generate(request)
+        raw = _generate(request).get("prediction")
+
+        # Extract assistant reply
+        parts = raw.split('<|assistant|>')
+        reply = parts[-1].strip() if len(parts) > 1 else raw
 
         obj = {
             "prompt": request.prompt,
+            "temperature": request.temperature,
+            "top_p": request.top_p,
             "response": reply,
+            "session_id": request.session_id,
             "timestamp": timestamp
         }
         s3_key = f"conversation_logs/{request.session_id}.json"

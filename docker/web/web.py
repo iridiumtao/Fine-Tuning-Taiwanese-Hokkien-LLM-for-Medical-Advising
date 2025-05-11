@@ -32,15 +32,19 @@ def chat_with_model(message, history, temperature, top_p, session_id):
     # Always generate a fresh session_id per request
     session_id = str(uuid.uuid4())
 
+    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
     # Prepare payload for FastAPI
     payload = {
         "prompt": message,
         "temperature": temperature,
         "top_p": top_p,
         "session_id": session_id,
+        "timestamp": timestamp
     }
-    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     s3_key = f"conversation_logs/{session_id}.json"
+
+    is_waiting_for_human_approve = False
 
     try:
         response = requests.post(f"{FASTAPI_SERVER_URL}/generate", json=payload)
@@ -55,6 +59,7 @@ def chat_with_model(message, history, temperature, top_p, session_id):
             parts = raw.split('<|assistant|>')
             reply = parts[-1].strip() if len(parts) > 1 else raw
         elif data.get('human_approve_layer') is True:
+            is_waiting_for_human_approve = True
             res_session_id = data.get('session_id')
             text = f"""
 你請求已經成功的記錄，待醫師審核了後隨會當查看結果。
@@ -87,36 +92,39 @@ Thank you for your patience!
     # Append to history
     history.append((message, reply))
 
-    # Build log object
-    log_obj = {
-        "prompt": message,
-        "response": reply,
-        "feedback_type": "none",
-        "confidence": "1.000",
-        "timestamp": timestamp
-    }
-
-    # Upload the conversation log
-    s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Body=json.dumps(log_obj),
-        ContentType='application/json'
-    )
-    # Initial tagging
-    s3.put_object_tagging(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Tagging={
-            'TagSet': [
-                {'Key': 'session_id', 'Value': session_id},
-                {'Key': 'processed', 'Value': 'false'},
-                {'Key': 'feedback_type', 'Value': 'none'},
-                {'Key': 'confidence', 'Value': '1.000'},
-                {'Key': 'timestamp', 'Value': timestamp}
-            ]
+    if not is_waiting_for_human_approve:
+        # Build log object
+        log_obj = {
+            "prompt": message,
+            "temperature": temperature,
+            "top_p": top_p,
+            "response": reply,
+            "feedback_type": "none",
+            "confidence": "1.000",
+            "timestamp": timestamp
         }
-    )
+
+        # Upload the conversation log
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            Body=json.dumps(log_obj),
+            ContentType='application/json'
+        )
+        # Initial tagging
+        s3.put_object_tagging(
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            Tagging={
+                'TagSet': [
+                    {'Key': 'session_id', 'Value': session_id},
+                    {'Key': 'processed', 'Value': 'false'},
+                    {'Key': 'feedback_type', 'Value': 'none'},
+                    {'Key': 'confidence', 'Value': '1.000'},
+                    {'Key': 'timestamp', 'Value': timestamp}
+                ]
+            }
+        )
 
     # Return updated history, clear textbox, and persist session_id
     return history, "", session_id
