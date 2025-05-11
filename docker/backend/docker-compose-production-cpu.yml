@@ -12,7 +12,10 @@ services:
     container_name: fastapi_server
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
-      - IS_FASTAPI_DUMMY=True
+      - IS_FASTAPI_DUMMY=False
+      - IS_HUMAN_APPROVE_LAYER=True
+      - MINIO_ROOT_USER=your-access-key
+      - MINIO_ROOT_PASSWORD=your-secret-key
     ports:
       - "8000:8000"
     networks:
@@ -30,6 +33,8 @@ services:
     environment:
       - FASTAPI_SERVER_URL=http://fastapi_server:8000
       - GRADIO_PORT=7860
+      - MINIO_ROOT_USER=your-access-key
+      - MINIO_ROOT_PASSWORD=your-secret-key
     networks:
       - production_net
     ports:
