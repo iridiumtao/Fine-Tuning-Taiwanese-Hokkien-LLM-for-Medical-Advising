@@ -90,3 +90,5 @@ trainer.train()
 # === Save model ===
 unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
 tokenizer.save_pretrained("../models/stage2")
+
+mlflow.log_artifacts("./models/stage2", artifact_path="model")
