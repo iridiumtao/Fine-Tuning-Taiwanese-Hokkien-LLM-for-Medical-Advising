@@ -121,15 +121,25 @@ def import_tasks_to_ls(**context):
         return
 
     imported_keys = set()
-    resp = requests.get(
-        f"{LABEL_STUDIO_URL}/api/projects/{project_id}/tasks",
-        headers=ls_headers()
-    )
-    resp.raise_for_status()
-    for t in resp.json():
-        s3_key = t.get("meta", {}).get("s3_key")
-        if s3_key:
-            imported_keys.add(s3_key)
+    try:
+        resp = requests.get(
+            f"{LABEL_STUDIO_URL}/api/projects/{project_id}/tasks",
+            headers=ls_headers(),
+            timeout=10
+        )
+        # handle empty tasks
+        if resp.status_code == 404:
+            logger.info("No tasks found in Label Studio yet.")
+        else:
+            resp.raise_for_status()
+            for t in resp.json():  # assume list
+                s3_key = t.get("meta", {}).get("s3_key")
+                if s3_key:
+                    imported_keys.add(s3_key)
+    except requests.HTTPError as e:
+        logger.warning(f"Failed to list tasks ({e}), assuming none imported yet.")
+    except Exception as e:
+        logger.warning(f"Unexpected error listing tasks: {e}")
 
     # filter um imported pending
     to_import = [

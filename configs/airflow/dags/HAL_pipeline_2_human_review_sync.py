@@ -9,12 +9,16 @@ import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from botocore.exceptions import ClientError
+import logging
 
 # ───── Env & Const ─────
 BUCKET = os.getenv("BUCKET_NAME", "production")
 LABEL_STUDIO_URL = os.environ["LABEL_STUDIO_URL"].rstrip("/")
 LS_TOKEN = os.environ["LABEL_STUDIO_USER_TOKEN"]
 PROJECT_TITLE = "Taigi Medical LLM Doctor Review"
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def s3_client():
     return boto3.client(
@@ -44,9 +48,21 @@ def list_completed_tasks(**context):
     completed = []
 
     url = f"{LABEL_STUDIO_URL}/api/projects/{proj_id}/tasks"
-    r = requests.get(url, headers=ls_headers())
-    r.raise_for_status()
-    tasks = r.json()  # Label Studio returns a list directly
+    try:
+        r = requests.get(url, headers=ls_headers(), timeout=10)
+        # handle empty tasks
+        if r.status_code == 404:
+            logger.info("Label Studio returned 404 for tasks; assuming no completed tasks yet.")
+            tasks = []
+        else:
+            r.raise_for_status()
+            tasks = r.json() or []
+    except requests.HTTPError as e:
+        logger.warning(f"HTTP error fetching tasks: {e}; treating as no completed tasks.")
+        tasks = []
+    except Exception as e:
+        logger.warning(f"Unexpected error fetching tasks: {e}; treating as no completed tasks.")
+        tasks = []
 
     for t in tasks:
         # After Label Studio task is completed, "is_labeled" is true
