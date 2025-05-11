@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import torch.nn.functional as F
 
 # Load model and tokenizer
 model_path = "models/stage2"
@@ -34,6 +35,21 @@ with torch.no_grad():
         eos_token_id = tokenizer.eos_token_id
     )
 
+# Extract generated token ids (excluding prompt)
+generated_ids = output_ids.sequences[0][inputs.input_ids.shape[-1]:]
+
+# Extract scores (logits → probs)
+logits = torch.stack(output_ids.scores, dim = 1)[0]  # shape: [num_tokens, vocab_size]
+probs = F.softmax(logits, dim =- 1)
+confidences = probs[range(len(generated_ids)), generated_ids]
+
 # Decode
 generated = tokenizer.decode(output_ids[0], skip_special_tokens = True)
 print("\nModel Response:\n", generated)
+
+print("\n=== Confidence per token ===")
+for token_id, conf in zip(generated_ids, confidences):
+    print(f"{tokenizer.decode([token_id]):10s} -> {conf.item():.4f}")
+
+avg_confidence = confidences.mean().item()
+print(f"\nAverage confidence: {avg_confidence:.4f}")
