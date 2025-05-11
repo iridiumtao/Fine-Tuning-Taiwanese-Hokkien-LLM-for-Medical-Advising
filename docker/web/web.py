@@ -62,12 +62,14 @@ def chat_with_model(message, history, temperature, top_p, session_id):
 會話編號：{ res_session_id }
 
 多謝你的耐心等待！
+
 ---
 lir2 tshiann2 kiu5 i2-king1 sing5-kong1 e5 ki3-lok8, thai7 i1-sir1 sim2-hik8 liau2-au7 sui5 e7-tang3 tsa1-khuann3 kiat4-ko2.
 sim2-hik8 uan5-sing5 liau2-au7, gun2 e7 sui5 thong1-tsai1 lir2.
 e7 ue7 pian1 ho7: { res_session_id }
 
 to1-sia7 lir2 e5 nai7-sim1 tan2-thai7!
+
 ---
 Your request has been successfully recorded. You will be able to view the results after the doctor’s review.
 We will notify you as soon as the review is complete.

@@ -6,6 +6,8 @@ import os
 import boto3
 from prometheus_fastapi_instrumentator import Instrumentator
 import logging
+from datetime import datetime
+import json
 
 app = FastAPI()
 
@@ -114,7 +116,7 @@ def generate(request: GenerationRequest):
         )
 
         return {"human_approve_layer": True,
-                "session_id": session_id}
+                "session_id": request.session_id}
 
     return _generate(request)
 
