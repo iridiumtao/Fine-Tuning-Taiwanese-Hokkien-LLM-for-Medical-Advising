@@ -88,5 +88,5 @@ with mlflow.start_run():
 trainer.train()
 
 # === Save model ===
-unwrapped_model.save_pretrained("../models/stage2")
+unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
 tokenizer.save_pretrained("../models/stage2")
