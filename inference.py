@@ -51,7 +51,7 @@ print("\nModel Response:\n", generated)
 
 print("\n=== Confidence per token ===")
 for token_id, conf in zip(generated_ids, confidences):
-    print(f"{tokenizer.decode([token_id]):10s} -> {conf.item():.4f}")
+    print(f"{tokenizer.decode([token_id.item()]):10s} -> {conf.item():.4f}")
 
 avg_confidence = confidences.mean().item()
 print(f"\nAverage confidence: {avg_confidence:.4f}")
