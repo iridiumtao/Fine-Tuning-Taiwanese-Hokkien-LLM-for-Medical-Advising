@@ -5,6 +5,11 @@ from transformers import (
 )
 from peft import LoraConfig, get_peft_model, TaskType
 import torch
+import mlflow
+import mlflow.pytorch
+
+mlflow.set_tracking_uri("http://129.114.109.48:5000")
+mlflow.set_experiment("taigi-llm-training")
 
 # === Load dataset from your combined file ===
 dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
@@ -59,6 +64,23 @@ trainer = Trainer(
     tokenizer=tokenizer,
     data_collator=data_collator
 )
+
+with mlflow.start_run():
+    # Log config
+    mlflow.log_params({
+        "lr": training_args.learning_rate,
+        "epochs": training_args.num_train_epochs,
+        "batch_size": training_args.per_device_train_batch_size
+    })
+
+    # Train
+    trainer.train()
+
+    # Log model
+    mlflow.pytorch.log_model(model, "model")
+
+    # Log final metrics (add more if needed)
+    mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
 
 trainer.train()
 
