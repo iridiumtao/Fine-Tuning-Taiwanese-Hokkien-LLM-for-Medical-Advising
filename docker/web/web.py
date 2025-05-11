@@ -186,7 +186,7 @@ def poll_status(
             new_reply = data.get("response", "（無內容 / No Response）")
         else:  # rejected
             reason = data.get("reason", "")
-            new_reply = f"才會回應已經予醫師拒絕 / The docker has rejected the response：{reason}"
+            new_reply = f"才會回應已經予醫師拒絕 / The docker has rejected the response. {reason}"
 
         # search for the message with session_id
         for idx, (u, b) in enumerate(history):
@@ -226,7 +226,7 @@ with gr.Blocks() as web:
         outputs=[check_btn]
     ).then(
         fn=poll_status,
-        inputs=[chatbot, session_ids[-1]],
+        inputs=[chatbot, session_ids],
         outputs=[chatbot]
     ).then(
         fn=lambda: "🔄 檢查審核狀態 / kiam2-tsa1 sim2-hik8 tsong7-thai3 / Check Status",
@@ -235,8 +235,8 @@ with gr.Blocks() as web:
     )
 
     like_btn.click(
-        fn=lambda history, session_id: upload_feedback_to_s3(history[-1][0], history[-1][1], "like", 1.0, session_id),
-        inputs=[chatbot, session_ids[-1]],
+        fn=lambda history, session_ids: upload_feedback_to_s3(history[-1][0], history[-1][1], "like", 1.0, session_ids[-1]),
+        inputs=[chatbot, session_ids],
         outputs=[]
     ).then(
         fn=lambda: "多謝你的回饋 / to1 sia7 li2 e5 hue5 kui7 / Thank you for your feedback!",
@@ -245,9 +245,9 @@ with gr.Blocks() as web:
     )
 
     dislike_btn.click(
-        fn=lambda history, session_id: upload_feedback_to_s3(history[-1][0], history[-1][1], "dislike", 1.0,
-                                                             session_id),
-        inputs=[chatbot, session_ids[-1]],
+        fn=lambda history, session_ids: upload_feedback_to_s3(history[-1][0], history[-1][1], "dislike", 1.0,
+                                                             session_ids[-1]),
+        inputs=[chatbot, session_ids],
         outputs=[]
     ).then(
         fn=lambda: "多謝你的回饋 / to1 sia7 li2 e5 hue5 kui7 / Thank you for your feedback!",
