@@ -3,11 +3,12 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import os
+import boto3
 from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
-IS_DUMMY = os.getenv("IS_FASTAPI_DUMMY", 'False').lower() in ('true', 'ture', '1', 't')
+IS_DUMMY = os.getenv("IS_FASTAPI_DUMMY", 'True').lower() in ('true', 'ture', '1', 't')
 IS_HUMAN_APPROVE_LAYER = os.getenv("IS_HUMAN_APPROVE_LAYER", 'True').lower() in ('true', 'ture', '1', 't')
 
 # S3 and Environment Config
@@ -27,6 +28,7 @@ s3 = boto3.client(
 
 if not IS_DUMMY:
     # Load model and tokenizer
+    print("Is not dummy, loading models")
     model_path = "./models/stage1" # todo: potential problem!!!
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(model_path)
@@ -39,6 +41,7 @@ class GenerationRequest(BaseModel):
     prompt: str
     temperature: float = 0.7
     top_p: float = 0.95
+    session_id: str
 
 
 def _generate(request: GenerationRequest):
@@ -69,17 +72,16 @@ def generate(request: GenerationRequest):
         raise HTTPException(status_code=400, detail="No prompt provided")
 
     if IS_HUMAN_APPROVE_LAYER:
-        session_id = str(uuid.uuid4())
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
         reply = _generate(request)
 
         obj = {
-            "prompt": req.prompt,
+            "prompt": request.prompt,
             "response": reply,
             "timestamp": timestamp
         }
-        s3_key = f"conversation_logs/{session_id}.json"
+        s3_key = f"conversation_logs/{request.session_id}.json"
 
         s3.put_object(
             Bucket=BUCKET_NAME,
@@ -89,11 +91,23 @@ def generate(request: GenerationRequest):
         )
 
         s3.put_object_tagging(
-            Bucket=BUCKET_NAME, Key=s3_key,
-            Tagging={'TagSet': [{'Key': 'status', 'Value': 'needs_review'}]})
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            Tagging={
+                'TagSet': [
+                    {'Key': 'session_id', 'Value': request.session_id},
+                    {'Key': 'status', 'Value': 'needs_review'},
+                    {'Key': 'processed', 'Value': 'false'},
+                    {'Key': 'feedback_type', 'Value': 'none'},
+                    {'Key': 'confidence', 'Value': '1.000'},
+                    {'Key': 'timestamp', 'Value': timestamp},
+                    {'Key': 'doctor_comment', 'Value': ''}
+                ]
+            }
+        )
 
-        return {"session_id": session_id,
-                "placeholder": "待醫師審核"}
+        return {"human_approve_layer": True,
+                "session_id": session_id}
 
     return _generate(request)
 

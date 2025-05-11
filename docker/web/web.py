@@ -36,7 +36,8 @@ def chat_with_model(message, history, temperature, top_p, session_id):
     payload = {
         "prompt": message,
         "temperature": temperature,
-        "top_p": top_p
+        "top_p": top_p,
+        "session_id": session_id,
     }
     timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     s3_key = f"conversation_logs/{session_id}.json"
@@ -45,11 +46,39 @@ def chat_with_model(message, history, temperature, top_p, session_id):
         response = requests.post(f"{FASTAPI_SERVER_URL}/generate", json=payload)
         response.raise_for_status()
         data = response.json()
-        # Extract only the assistant's reply, removing any prompt echoes
-        raw = data.get('prediction', '')
-        # Extract assistant reply
-        parts = raw.split('<|assistant|>')
-        reply = parts[-1].strip() if len(parts) > 1 else raw
+
+
+        if data.get('prediction') is not None: # if non-human approval required
+            raw = data.get('prediction')
+
+            # Extract assistant reply
+            parts = raw.split('<|assistant|>')
+            reply = parts[-1].strip() if len(parts) > 1 else raw
+        elif data.get('human_approve_layer') is True:
+            res_session_id = data.get('session_id')
+            text = f"""
+你請求已經成功的記錄，待醫師審核了後隨會當查看結果。
+審核完成了後，阮會隨通知你。
+會話編號：{ res_session_id }
+
+多謝你的耐心等待！
+---
+lir2 tshiann2 kiu5 i2-king1 sing5-kong1 e5 ki3-lok8, thai7 i1-sir1 sim2-hik8 liau2-au7 sui5 e7-tang3 tsa1-khuann3 kiat4-ko2.
+sim2-hik8 uan5-sing5 liau2-au7, gun2 e7 sui5 thong1-tsai1 lir2.
+e7 ue7 pian1 ho7: { res_session_id }
+
+to1-sia7 lir2 e5 nai7-sim1 tan2-thai7!
+---
+Your request has been successfully recorded. You will be able to view the results after the doctor’s review.
+We will notify you as soon as the review is complete.
+Session ID: { res_session_id }
+
+Thank you for your patience!
+"""
+            reply = text
+        else:
+            reply = f"Error: prediction is None and HAL is False. Data: {data}"
+
     except Exception as e:
         reply = f"Error: {e}"
 

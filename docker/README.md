@@ -28,6 +28,9 @@ This step is required because the `docker-compose` files reference an external n
 # Start the backend services
 docker compose -f ./docker/backend/docker-compose-production.yml up --build -d
 
+# if CPU
+docker compose -f ./docker/backend/docker-compose-production-cpu.yml up --build -d
+
 # Stop the backend services
 docker compose -f ./docker/backend/docker-compose-production.yml down
 ```

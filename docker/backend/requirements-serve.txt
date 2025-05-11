@@ -10,3 +10,4 @@ tokenizers~=0.21.1
 sentencepiece~=0.2.0
 datasets~=3.5.0
 prometheus-fastapi-instrumentator~=7.1.0
+boto3
