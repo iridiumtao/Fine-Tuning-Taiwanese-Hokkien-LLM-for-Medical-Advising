@@ -128,4 +128,26 @@ def generate(request: GenerationRequest):
 
     return _generate(request)
 
+
+@app.get("/status/{session_id}")
+def check_status(session_id: str):
+    s3_key = f"conversation_logs/{session_id}.json"
+
+    # tag
+    tags = s3.get_object_tagging(
+        Bucket=BUCKET_NAME,
+        Key=s3_key
+    )['TagSet']
+    tag_map = {t['Key']: t['Value'] for t in tags}
+
+    # status
+    if tag_map.get("status") == "approved":
+        body = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)['Body'].read()
+        data = json.loads(body)
+        return {"status": "approved", "response": data["response"]}
+    elif tag_map.get("status") == "rejected":
+        return {"status": "rejected", "reason": tag_map.get("doctor_comment", "")}
+    else:
+        return {"status": "pending"}
+
 Instrumentator().instrument(app).expose(app)
