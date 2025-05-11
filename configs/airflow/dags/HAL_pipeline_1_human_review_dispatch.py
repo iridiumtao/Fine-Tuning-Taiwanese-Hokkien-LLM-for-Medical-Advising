@@ -117,19 +117,37 @@ def import_tasks_to_ls(**context):
     pending = context["ti"].xcom_pull(key="pending", task_ids="list_pending_sessions")
     project_id = context["ti"].xcom_pull(key="project_id", task_ids="ensure_ls_project")
     if not pending:
+        logger.info("No pending sessions to import.")
         return
 
-    tasks = []
-    for item in pending:
-        tasks.append(
-            {
-                "data": {
-                    "prompt": item["prompt"],
-                    "response": item["response"],
-                },
-                "meta": {"s3_key": item["key"]},
-            }
-        )
+    imported_keys = set()
+    resp = requests.get(
+        f"{LABEL_STUDIO_URL}/api/projects/{project_id}/tasks",
+        headers=ls_headers()
+    )
+    resp.raise_for_status()
+    for t in resp.json():
+        s3_key = t.get("meta", {}).get("s3_key")
+        if s3_key:
+            imported_keys.add(s3_key)
+
+    # filter um imported pending
+    to_import = [
+        item for item in pending
+        if item["key"] not in imported_keys
+    ]
+
+    if not to_import:
+        logger.info("All pending sessions already imported to Label Studio.")
+        return
+
+    tasks = [
+        {
+            "data": {"prompt": item["prompt"], "response": item["response"]},
+            "meta": {"s3_key": item["key"]},
+        }
+        for item in to_import
+    ]
 
     r = requests.post(
         f"{LABEL_STUDIO_URL}/api/projects/{project_id}/import",
@@ -137,11 +155,11 @@ def import_tasks_to_ls(**context):
         json=tasks,
     )
     r.raise_for_status()
-    print(f"Imported {len(tasks)} tasks to project {project_id}")
+    logger.info(f"Imported {len(tasks)} new tasks to project {project_id}")
 
 # ─────────────── DAG Definition ───────────────
 with DAG(
-    dag_id="HAL_pipeline_1_human_review_dispatch.",
+    dag_id="HAL_pipeline_1_human_review_dispatch",
     description="Send LLM answers to doctors for approval",
     default_args=default_args,
     start_date=datetime(2025, 5, 10),
