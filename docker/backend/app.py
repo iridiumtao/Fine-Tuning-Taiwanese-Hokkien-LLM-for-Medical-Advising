@@ -5,8 +5,13 @@ import torch
 import os
 import boto3
 from prometheus_fastapi_instrumentator import Instrumentator
+import logging
 
 app = FastAPI()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 IS_DUMMY = os.getenv("IS_FASTAPI_DUMMY", 'True').lower() in ('true', 'ture', '1', 't')
 IS_HUMAN_APPROVE_LAYER = os.getenv("IS_HUMAN_APPROVE_LAYER", 'True').lower() in ('true', 'ture', '1', 't')
@@ -28,7 +33,7 @@ s3 = boto3.client(
 
 if not IS_DUMMY:
     # Load model and tokenizer
-    print("Is not dummy, loading models")
+    logger.info("Is not dummy, loading models")
     model_path = "./models/stage1" # todo: potential problem!!!
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(model_path)
@@ -36,6 +41,8 @@ if not IS_DUMMY:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
+else:
+    logger.info("Is dummy, skip loading models")
 
 class GenerationRequest(BaseModel):
     prompt: str

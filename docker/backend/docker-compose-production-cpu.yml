@@ -12,7 +12,7 @@ services:
     container_name: fastapi_server
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
-      - IS_FASTAPI_DUMMY=False
+      - IS_FASTAPI_DUMMY=True
       - IS_HUMAN_APPROVE_LAYER=True
       - MINIO_ROOT_USER=your-access-key
       - MINIO_ROOT_PASSWORD=your-secret-key
