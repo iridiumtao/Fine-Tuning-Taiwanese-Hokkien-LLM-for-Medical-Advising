@@ -1,4 +1,4 @@
-# dags/doctor_review_sync.py
+# dags/HAL_pipeline_2_human_review_sync.py
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -28,7 +28,7 @@ def s3_client():
 def ls_headers():
     return {"Authorization": f"Token {LS_TOKEN}"}
 
-# ───── Task 0：抓取 / 緩存 project_id ─────
+# ───── Task 0: Fetch / cache project_id ─────
 def get_project_id(**context):
     r = requests.get(f"{LABEL_STUDIO_URL}/api/projects", headers=ls_headers())
     r.raise_for_status()
@@ -38,7 +38,7 @@ def get_project_id(**context):
             return
     raise ValueError(f"Project '{PROJECT_TITLE}' not found, ensure dispatch DAG created it")
 
-# ───── Task 1：列出已完成且尚未同步的任務 ─────
+# ───── Task 1: List completed tasks not yet synced ─────
 def list_completed_tasks(**context):
     proj_id = context["ti"].xcom_pull(key="project_id", task_ids="get_project_id")
     completed = []
@@ -46,13 +46,13 @@ def list_completed_tasks(**context):
     url = f"{LABEL_STUDIO_URL}/api/projects/{proj_id}/tasks"
     r = requests.get(url, headers=ls_headers())
     r.raise_for_status()
-    tasks = r.json()  # Label Studio 直接回 list
+    tasks = r.json()  # Label Studio returns a list directly
 
     for t in tasks:
-        # Label Studio 任務完成後，"is_labeled": true
+        # After Label Studio task is completed, "is_labeled" is true
         if not t.get("is_labeled"):
             continue
-        # 跳過已同步過的
+        # Skip tasks already synced
         if t["meta"].get("synced") == "true":
             continue
         completed.append({
@@ -63,10 +63,10 @@ def list_completed_tasks(**context):
 
     print(f"Found {len(completed)} completed tasks")
     context["ti"].xcom_push(key="completed", value=completed)
-    # 如果沒東西，就 ShortCircuit 停掉後面的 update
+    # Short-circuit downstream tasks if there are none
     return bool(completed)
 
-# ───── Task 2：回寫 MinIO Tag ─────
+# ───── Task 2: Update MinIO tags and mark as synced ─────
 def update_s3_and_mark(**context):
     completed = context["ti"].xcom_pull(key="completed", task_ids="list_completed_tasks")
     proj_id = context["ti"].xcom_pull(key="project_id", task_ids="get_project_id")
@@ -77,8 +77,8 @@ def update_s3_and_mark(**context):
         if not key:
             continue
 
-        # 解析醫師判斷
-        ann = item["annotations"][0]  # assume first ann
+        # Parse doctor's decision
+        ann = item["annotations"][0]  # assume first annotation
         result = ann["result"][0]["value"]["choices"][0]  # approved / rejected
         comment = (
             ann["result"][1]["value"]["text"][0]
@@ -86,7 +86,7 @@ def update_s3_and_mark(**context):
             else ""
         )
 
-        # 更新 S3 Tag
+        # Update S3 object tags
         try:
             tag_set = cli.get_object_tagging(Bucket=BUCKET, Key=key)["TagSet"]
             tags = {t["Key"]: t["Value"] for t in tag_set}
@@ -106,23 +106,23 @@ def update_s3_and_mark(**context):
         except ClientError as e:
             print(f"Failed to tag {key}: {e}")
 
-        # 標記 LS 任務已同步，避免重複處理
+        # Mark Label Studio task as synced to avoid reprocessing
         requests.patch(
             f"{LABEL_STUDIO_URL}/api/tasks/{item['task_id']}",
             headers=ls_headers(),
             json={"meta": {"synced": "true"}},
         )
 
-# ───── DAG Def ─────
+# ───── DAG Definition ─────
 default_args = {"owner": "airflow", "retries": 1, "retry_delay": timedelta(minutes=2)}
 
 with DAG(
-    dag_id="doctor_review_sync",
-    description="Every 5 min sync doctor-reviewed tasks back to MinIO",
+    dag_id="HAL_pipeline_2_human_review_sync",
+    description="Every 5 min sync doctor-reviewed tasks back to MinIO",
     start_date=datetime(2025, 5, 11),
-    schedule_interval="*/5 * * * *",  # 每 5 分鐘
+    schedule_interval="*/5 * * * *",  # every 5 minutes
     catchup=False,
-    tags=["taigi-mlops"],
+    tags=["taigi-mlops", "HAL"],
     default_args=default_args,
 ) as dag:
 
