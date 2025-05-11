@@ -7,6 +7,7 @@ from peft import LoraConfig, get_peft_model, TaskType
 import torch
 import mlflow
 import mlflow.pytorch
+from accelerate import Accelerator
 
 mlflow.set_tracking_uri("http://129.114.109.48:5000")
 mlflow.set_experiment("taigi-llm-training")
@@ -76,6 +77,8 @@ with mlflow.start_run():
     # Train
     trainer.train()
 
+    # Unwrap the PEFT Accelerate-wrapped model
+    unwrapped_model = Accelerator().unwrap_model(model)
     # Log model
     mlflow.pytorch.log_model(model, "model")
 
