@@ -13,6 +13,9 @@ services:
     environment:
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
       - IS_FASTAPI_DUMMY=False
+      - IS_HUMAN_APPROVE_LAYER=True
+      - MINIO_ROOT_USER=your-access-key
+      - MINIO_ROOT_PASSWORD=your-secret-key
     deploy:
       resources:
         reservations:
@@ -37,6 +40,8 @@ services:
     environment:
       - FASTAPI_SERVER_URL=http://fastapi_server:8000
       - GRADIO_PORT=7860
+      - MINIO_ROOT_USER=your-access-key
+      - MINIO_ROOT_PASSWORD=your-secret-key
     networks:
       - production_net
     ports:
@@ -52,7 +57,7 @@ services:
       - MINIO_ROOT_USER=your-access-key
       - MINIO_ROOT_PASSWORD=your-secret-key
     volumes:
-      - minio_data:/data
+      - /mnt/block/minio_data:/data
     command: server /data --console-address ':9001'
     networks:
       - production_net
