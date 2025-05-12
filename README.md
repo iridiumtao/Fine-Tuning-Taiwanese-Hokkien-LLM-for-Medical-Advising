@@ -4,7 +4,7 @@
 
 ## Instructions
 
-**Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!**
+** Model requires 33G VRAM to run. **
 
 ### Preparing data
 
@@ -12,7 +12,7 @@ Follow instruction on notebook "[dataNode_setUp.ipynb](https://github.com/Lawren
 
 ### Setting up Model Serving and monitoring
 
-Follow instruction on notebook "[create_chameleon_server.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/create_chameleon_server.ipynb)"
+Follow instruction on notebook "[create_chameleon_server.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/create_chameleon_server.ipynb)" until Docker installation finishes.
 After setting up the server, follow instructions under "[/docker](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/main/docker)"
 
 ### Training
@@ -285,7 +285,7 @@ and which optional "difficulty" points you are attempting. -->
    * `/health` endpoint for system status monitoring
 2. Requirements Specification
    - Model Size:
-   7b Model, about 15~20 GB model size
+   7b Model, about 20 GB model size
    - Latency Requirements:
      - <500ms response time for text queries
      - <3s for voice-to-text-to-voice round trip
@@ -327,15 +327,8 @@ and which optional "difficulty" points you are attempting. -->
    1. Concurrent Request Processing
       - Asynchronous FastAPI
       - Evaluate performance impact of different worker configurations (number of workers, threads per worker)
-      
-   2. Dynamic Batching Strategies
-      - To group incoming requests and optimize GPU utilization
-      - Test various batch sizes and timeout settings to balance throughput vs. latency
-
-   3. Inference Server Optimization
-      - Deploy Triton Inference Server with optimized configuration for LLM serving
-      - Look for different execution providers and test performance with them and model optimization settings
-
+        - Result: 1 worker for 40G VRAM GPU, 2 workers for 80G VRAM
+          
    4. Resource Allocation and Scaling
       - Optimize GPU allocation for different concurrency levels
       - Horizontal scaling based on request load patterns
