@@ -223,12 +223,111 @@ The `mlops` folder contains the following Jupyter notebooks:
         ```
 
         > What this does:
-        > - Kubernetes CLI setup: Copies admin.conf to /home/cc/.kube/config on node1 and node2 for direct use of kubectl
+        > - **Kubernetes CLI setup**: Copies admin.conf to /home/cc/.kube/config on node1 and node2 for direct use of kubectl
         > - Adds user cc to the docker group and restarts the Docker service
-        > - Install Kubernetes Dashboard
-        > - Fix DNS Resolution: Configures system DNS using resolvectl to ensure internal and external names are resolvable
-        > - Installs ArgoCD CLI and server into the argocd namespace and patches the argocd-repo-server with custom DNS configuration
-        > - Install Argo Workflows & Argo Events: Deploys workflows into argo namespace, and events into argo-events
+        > - **Install Kubernetes Dashboard**
+        > - **Fix DNS Resolution**: Configures system DNS using resolvectl to ensure internal and external names are resolvable
+        > - **Installs ArgoCD CLI and server** into the argocd namespace and patches the argocd-repo-server with custom DNS configuration
+        > - **Install Argo Workflows & Argo Events**: Deploys workflows into argo namespace, and events into argo-events
+
+6. **Configure ArgoCD Applications (`5_configure_argocd.ipynb`)**  
+    This notebook configures the ArgoCD platform by deploying core MLOps services like **MinIO**, **MLflow**, and other apps required for the LLM training pipeline.
+
+    - Run ArgoCD Platform Setup Playbook
+
+        This playbook deploys Kubernetes manifests using ArgoCD and sets up necessary applications into the `taiwanese-llm-platform` namespace.
+
+        ```bash
+        cd ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible
+        ansible-playbook -i inventory.yml argocd/argocd_add_platform.yml
+        ```
+
+        > This includes:
+        > - Creating ArgoCD Application definitions
+        > - Deploying MinIO (S3-compatible object store)
+        > - Deploying MLflow (experiment tracking)
+        > - Ensuring all apps are reconciled via ArgoCD
+
+        ---
+
+    - Manually Patch Services to `NodePort`
+
+        Because we are using **bare metal nodes** (not cloud VMs), our cluster does **not automatically expose services externally** via LoadBalancer or external IPs.
+
+        > Therefore, we **patch the Kubernetes Services** (e.g., MinIO, MLflow) to use `NodePort`, which maps internal ports to fixed high-range ports on the node.
+
+        **On `node1`, run:**
+        ```bash
+        kubectl patch svc minio -n taiwanese-llm-platform -p '{"spec": {"type": "NodePort"}}'
+        kubectl patch svc mlflow -n taiwanese-llm-platform -p '{"spec": {"type": "NodePort"}}'
+        ```
+
+        Then check the result:
+        ```bash
+        kubectl get svc minio -n taiwanese-llm-platform
+        kubectl get svc mlflow -n taiwanese-llm-platform
+        ```
+
+        Example output:
+        ```
+        NAME    TYPE       CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
+        minio   NodePort   10.233.38.190   192.5.87.178   9000:30546/TCP,9001:32011/TCP   9m
+        mlflow  NodePort   10.233.11.71    192.5.87.178   8000:31942/TCP                  15m
+        ```
+
+        You can now access services at:
+        - MinIO: `http://192.5.87.178:32011`
+        - MLflow: `http://192.5.87.178:31942`
+
+        > **Why is this needed on bare metal but not on VMs?**
+        > - In `kvm@tacc` VMs, each VM has a public IP and can be accessed directly.
+        > - On **CHI@UC bare metal**, only `node1` has a floating IP, and Kubernetes services by default are internal.
+        > - `NodePort` exposes a fixed port on `node1` that can be accessed from outside (e.g., your browser or API calls).
+
+    - Build Docker Image and Submit Workflow (`workflow_build_init.yml`)
+        This playbook runs a full CI workflow on `node1`, including Docker image build and Argo workflow submission.
+        > What this does:
+        > - **Clones two parts of the repository**:
+            iac/ folder from the mlops branch
+            web/ folder from the serving-eval branch
+        > - **Builds Docker image**
+        > - **Submits and monitors Argo Workflow**
+    
+    - **Deploy LLM Staging Application (argocd_add_staging.yml)**
+        This playbook deploys the LLM serving application using ArgoCD + Helm into the staging environment.
+        ```bash
+        ansible-playbook -i inventory.yml argocd/argocd_add_staging.yml
+        ```
+
+    - **Deploy Canary & Production Versions**
+        ```bash
+        ansible-playbook -i inventory.yml argocd/argocd_add_canary.yml
+        ansible-playbook -i inventory.yml argocd/argocd_add_prod.yml
+        ```
+
+        **On `node1`, run:**
+        ```bash
+        kubectl patch svc taiwanese-llm-app -n taiwanese-llm-production -p '{"spec": {"type": "NodePort"}}'
+        ```
+
+        Then check the result:
+        ```bash
+        kubectl get svc taiwanese-llm-app -n taiwanese-llm-production
+        ```
+    
+    - **Apply Argo WorkflowTemplates (`workflow_templates_apply.yml`)**
+        This playbook applies reusable Argo WorkflowTemplates (modular job blueprints) into the `argo` namespace. These templates are the building blocks for CI/CD pipelines, model training, and promotion.
+        ```bash
+        cd ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible
+        ansible-playbook -i inventory.yml argocd/workflow_templates_apply.yml
+        ```
+        > What this does:
+        > - **Applies selected WorkflowTemplates from iac/workflows/**:
+            build-container-image.yaml: Builds a Docker image and pushes to registry
+            deploy-container-image.yaml: Deploys the image to staging/prod via Helm
+            train-model.yaml: Runs training job using specified dataset and configuration
+            promote-model.yaml: Promotes a trained model between environments
+
 
 ## How to Use
 1. **Create a Lease (`CHI@UC` Bare Metal Reservation)**  
