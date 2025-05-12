@@ -7,7 +7,12 @@
 
 Follow instruction on notebook "[dataNode_setUp.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/dataNode_setUp.ipynb)"
 
-### Create Server on Chameleon
+### Setting up Model Serving and monitoring
+
+Follow instruction on notebook "[create_chameleon_server.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/create_chameleon_server.ipynb)"
+After setting up the server, follow instructions under "[/docker](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/main/docker)"
+
+### Training
 
 Copy `create_chameleon_server.ipynb` and run in Chameleon Jupyter Interface
 
