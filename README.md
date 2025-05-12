@@ -137,7 +137,7 @@ link to their contributions in all repos here. -->
 |-----------------------|---------------------------------------------|------------------------------------|
 | All team members      |                                             |                                    |
 | Ping-Jung(Lawrence)Lu | Model training (unit 4 and 5)               |                                    |
-| Chun-Ju Tao           | Model serving (unit 6), monitoring (unit 7) |                                    |
+| Chun-Ju Tao           | Model serving (unit 6), monitoring (unit 7) | [b19dfc3](../../commit/b19dfc3b2d51eea6feaca65baeb56e31ba31b512)  |
 | TsuYun Chen           | Data pipeline (unit 8)                      |                                    |
 | Yi Syuan Chung        | Continuous X pipeline (unit 3)              |                                    |
 
