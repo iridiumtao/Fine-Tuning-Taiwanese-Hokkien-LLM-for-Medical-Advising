@@ -378,7 +378,7 @@ The application integrates with Prometheus for real-time metrics collection.
 `docker-compose-monitor.yml`: The Docker Compose file that builds up Grafana and Prometheus for monitoring numbers of requests, response latency, and numbers of errors.
 - dashboard and data source definition is under config/grafana and config/grafana/dashboards to provide the same dashboard setup for each time the services are built and avoid ClickOps
 
-**(Feedback_loop)[https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/feedback_loop]**
+**[Feedback_loop](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/feedback_loop)**
 
 The project has two feedback loops. User feedback loop collects “good response” and “bad response” feedback from the frontend. Airflow DAGs schedules the pipeline and sends them to Label Studio for review and annotate the model’s answers, improving the model over time with supervised fine-tuning on those annotations. Medical doctor feedback loop, also called as human approval layer, intercepts LLM’s response, and tag as “needs review”. Airflow DAG schedules the pipeline and sends them to Label Studio for medical doctors to review, and send back to MinIO.
 
@@ -387,7 +387,7 @@ The project has two feedback loops. User feedback loop collects “good response
 
 `docker-compose-labelstudio.yml`: The Docker Compose file that builds up Label Studio and a Jupyter Notebook for experiments.
 
-**(Frontend Web)[https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/web]**
+*[Frontend Web](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/web)**
 
 The frontend of the project is powered by Gradio, providing a web-based UI for interacting with the LLM model and managing session-based conversations. 
 
