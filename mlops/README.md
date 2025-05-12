@@ -106,6 +106,46 @@ The `mlops` folder contains the following Jupyter notebooks:
 
       > 🧩 This file (`outputs.json`) will be parsed in the next step to configure the Ansible inventory and playbooks accordingly.
 
+3. **Create Nodes (`2_5_create_nodes.ipynb`)**  
+    - This step provisions the **bare metal nodes** (node1, node2, node3) from your active lease and attaches network ports.
+    - It also injects initial configuration into each node using `user_data`.
+
+    - **Set Chameleon Context and Load Leases**
+      Selects the active Chameleon project and site (`CHI@UC`) using `python-chi`.
+      ```python
+      from chi import context
+      context.version = "1.0" 
+      context.choose_project()
+      context.choose_site(default="CHI@UC")
+      ```
+
+    - **Load Lease IDs for Each Node**
+      Maps lease names (`compute_gigaio_project46_1/2/3`) to reservation IDs for provisioning.
+
+    - **Load Network Ports from Terraform Output**
+      Loads port IDs from the previously generated `outputs.json`.
+
+    - **Set Node Metadata via `user_data`**
+      Each node is initialized with a shell script passed to `user_data`. This script performs two key tasks:
+      
+      ```bash
+      #!/bin/bash
+      echo '127.0.1.1 {node}-mlops' >> /etc/hosts
+      su cc -c /usr/local/bin/cc-load-public-keys
+      ```
+
+      > 💡 Explanation:
+      > - `echo '127.0.1.1 {node}-mlops' >> /etc/hosts`  
+      >   This ensures that the node has a resolvable hostname inside `/etc/hosts`, important for internal hostname resolution when Ansible or Kubernetes expects the node to know its hostname.
+      >
+      > - `su cc -c /usr/local/bin/cc-load-public-keys`  
+      >   This loads the **Chameleon public SSH key** into the default user (`cc`) so you can SSH into the node after boot. Without this, login would fail unless you manually add keys later.
+
+    - **Result**
+      After this notebook:
+      - All three nodes (node1, node2, node3) are provisioned with ports, hostname set, and SSH keys installed.
+      - Nodes are now reachable (after floating IP is bound to node1).
+
 
 
 
