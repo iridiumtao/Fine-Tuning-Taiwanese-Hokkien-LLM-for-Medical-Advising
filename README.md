@@ -3,6 +3,10 @@
 
 **Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!**
 
+### Preparing data
+
+Follow instruction on notebook "dataNode_setUp.ipynb"
+
 ### Create Server on Chameleon
 
 Copy `create_chameleon_server.ipynb` and run in Chameleon Jupyter Interface
