@@ -6,7 +6,7 @@
 
 ## Instructions
 
-**Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!**
+** Model requires 33G VRAM to run. **
 
 ### Preparing data
 
@@ -14,7 +14,7 @@ Follow instruction on notebook "[dataNode_setUp.ipynb](https://github.com/Lawren
 
 ### Setting up Model Serving and monitoring
 
-Follow instruction on notebook "[create_chameleon_server.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/create_chameleon_server.ipynb)"
+Follow instruction on notebook "[create_chameleon_server.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/create_chameleon_server.ipynb)" until Docker installation finishes.
 After setting up the server, follow instructions under "[/docker](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/main/docker)"
 
 ### Training
@@ -285,21 +285,143 @@ and which optional "difficulty" points you are attempting. -->
 <!-- Make sure to clarify how you will satisfy the Unit 6 and Unit 7 requirements, 
 and which optional "difficulty" points you are attempting. -->
 
-1. API Endpoint: RESTful API service using FastAPI
-   * `/responses` endpoint for medical query processing in Taiwanese Hokkien
-   * `/health` endpoint for system status monitoring
-2. Requirements Specification
+Requirements Specification
    - Model Size:
-   7b Model, about 15~20 GB model size
+   7b Model, about 20 GB model size
    - Latency Requirements:
      - <500ms response time for text queries
-     - <3s for voice-to-text-to-voice round trip
    - Throughput Requirements:
-     - Support for 100 concurrent users during peak hospital hours
-     - Batch processing of 1000 queries/minute for population health analysis
+     - Support for 2 concurrent users during peak hospital hours
    - Concurrency Requirements:
-     - Scale to support 50 simultaneous active conversations
-     - Handle 200 connection requests per minute during peak hours
+     - Scale to support 5 simultaneous active conversations
+
+The ./docker folder is the endpoint for Unit 6 model serving, Unit 7 Evaluation and Monitoring.
+```
+├── docker
+│   ├── README.md
+│   ├── backend
+│   │   ├── Dockerfile
+│   │   ├── app.py
+│   │   ├── docker-compose-production-cpu.yml
+│   │   ├── docker-compose-production.yml
+│   │   └── requirements-serve.txt
+│   ├── feedback_loop
+│   │   ├── docker-compose-airflow.yml
+│   │   └── docker-compose-labelstudio.yml
+│   ├── monitoring
+│   │   └── docker-compose-monitor.yml
+│   └── web
+│       ├── Dockerfile
+│       ├── requirements.txt
+│       └── web.py
+```
+
+**Backend**
+
+The backend of the project is powered by FastAPI, serving as the main interface for LLM-based response generation and status checking. The backend is containerized with Docker and integrated with MinIO for session storage. 
+
+
+`docker-compose-production.yml`: The Docker Compose file for building up the backend, frontend, and object storage.
+- GPU with at least 40GB VRAM and CUDA is required.
+- To run the project for testing on KVM virtual machines without GPU, use docker-compose-production-cpu.yml instead.
+
+`app.py`: FastAPI backend Service. This is the main application file that sets up the API endpoints for generating LLM responses and querying status.
+- Load the LLM model and prepare for inferencing, automatically pull the base model from Hugging Face with the provided token
+- Provide a dummy mode that does not load the model for testing on KVM virtual machines without GPU
+- Serve POST /generate API that generates a response from the LLM Model and responds 
+    - However, if human approval is required: 1. generate response from LLM model, 2. save the session (request, response, id, …) to MinIO storage and tag `status: needs_review`, 3. Respond that this request needs review from the doctor
+- Serve GET /status/{session_id} API that checks human approval status from MinIO
+Serve GET /metrics:
+The application integrates with Prometheus for real-time metrics collection.
+
+**Monitor**
+
+`docker-compose-monitor.yml`: The Docker Compose file that builds up Grafana and Prometheus for monitoring numbers of requests, response latency, and numbers of errors.
+- dashboard and data source definition is under config/grafana and config/grafana/dashboards to provide the same dashboard setup for each time the services are built and avoid ClickOps
+
+**Feedback_loop**
+
+The project has two feedback loops. User feedback loop collects “good response” and “bad response” feedback from the frontend. Airflow DAGs schedules the pipeline and sends them to Label Studio for review and annotate the model’s answers, improving the model over time with supervised fine-tuning on those annotations. Medical doctor feedback loop, also called as human approval layer, intercepts LLM’s response, and tag as “needs review”. Airflow DAG schedules the pipeline and sends them to Label Studio for medical doctors to review, and send back to MinIO.
+
+`docker-compose-airflow.yml`: The Docker Compose file that builds up Airflow website, setup, scheduler, and Postgres.
+- DAGs are stored in config/airflow/dags
+
+`docker-compose-labelstudio.yml`: The Docker Compose file that builds up Label Studio and a Jupyter Notebook for experiments.
+
+**Frontend Web**
+
+The frontend of the project is powered by Gradio, providing a web-based UI for interacting with the LLM model and managing session-based conversations. 
+
+`web.py`: Gradio Frontend Interface
+This is the main application file that sets up the Gradio interface for user interaction, response generation, and status polling.
+- Provide a chat interface with
+    - conversation with history
+    - input box for user input
+    - Temperature, too_p parameter slide bars
+    - submit button
+    - check human approval status button
+    - Positive / negative feedback buttons.
+- Each call creates a new session_id and logs the conversation into MinIO 
+- If human approval is required, the user will see with a message clearly states the response requires doctor approval.
+- If human approval is not required, the conversation is immediately shown to the user
+- Session Logging:
+    - For every interaction, a log is created and stored in MinIO under the path: conversation_logs/{session_id}.json
+- Each log object is tagged with the following metadata for traceability:
+   - session_id: The unique identifier for the session.
+   - processed: "false" initially, updated to "true" upon feedback.
+   - feedback_type: "none", "like", or "dislike".
+   - confidence: "1.000" by default, updated upon feedback.
+   - timestamp: UTC timestamp of the interaction.
+
+- Polling Status: When a session is tagged as "needs_review", the frontend can poll the /status/{session_id} endpoint to check the status of the review.
+    - If approved, the response is displayed in the chat.
+    - If rejected, the rejection reason is shown.
+- When use click on “good response” or “bad response”, gradio updates the MinIO object tag to reflect the feedback
+
+**Access the services**
+Ensure port forwarding is enabled with
+```
+# your local terminal
+ssh -i ~/.ssh/id_rsa_chameleon -L
+7860:localhost:7860 cc@your_remote_ip
+```
+
+- Gradio Interface (User Inference UI): Navigate to http://localhost:7860 to access the Gradio web
+
+- FastAPI Endpoint (Backend API): Use REST API directly or open http://localhost:8000/docs to see the interactive Swagger UI. 
+
+- MinIO Console (Object Storage UI): Go to http://localhost:9000
+
+- Airflow UI (Pipeline Orchestration): Visit http://localhost:8080. You can trigger DAGs manually and monitor their activities
+
+- Grafana (Monitoring Dashboards): Visit http://localhost:3000
+
+- Label Studio (Annotation UI): Go to http://localhost:8081
+
+
+Demo Guide: Human Approval Layer
+
+- Open the Gradio web interface http://localhost:7860 in your browser. You’ll see a simple chat UI with input form.
+- Type your question in the text box. You can ask in Taiwanese Hokkien (Taigi) representing in Traditional Mandarin characters.
+    - Example: You might ask: 「我今仔日咳嗽甲頭痛，愛按怎辦？」 (Taigi, meaning "I have a cough and headache today, what should I do?").
+- You should see it respond with needs review message
+- Open Airflow and wait for the next schedule or tigger dispatch manually 
+- Open Label Studio and label the new respond
+- Wait for next schedule or trigger sync manually 
+- Back to Gradio and click Check Status button
+
+If Airflow DAGs are missing:
+- Refresh the UI and wait a moment.
+- Activate:
+ - HAL_pipeline_1_human_review_dispatch
+	-	HAL_pipeline_2_human_review_sync
+
+Troubleshooting
+	-	If you encounter errors, rebuild the docker
+
+Human Approval Layer Logic
+<img width="1236" alt="Screenshot 2025-05-11 at 23 34 23" src="https://github.com/user-attachments/assets/ef2a7c71-a551-4f7e-96db-5734fdb58f36" />
+
 
 3. Model optimizations
 
@@ -332,15 +454,8 @@ and which optional "difficulty" points you are attempting. -->
    1. Concurrent Request Processing
       - Asynchronous FastAPI
       - Evaluate performance impact of different worker configurations (number of workers, threads per worker)
-      
-   2. Dynamic Batching Strategies
-      - To group incoming requests and optimize GPU utilization
-      - Test various batch sizes and timeout settings to balance throughput vs. latency
-
-   3. Inference Server Optimization
-      - Deploy Triton Inference Server with optimized configuration for LLM serving
-      - Look for different execution providers and test performance with them and model optimization settings
-
+        - Result: 1 worker for 40G VRAM GPU, 2 workers for 80G VRAM
+          
    4. Resource Allocation and Scaling
       - Optimize GPU allocation for different concurrency levels
       - Horizontal scaling based on request load patterns
