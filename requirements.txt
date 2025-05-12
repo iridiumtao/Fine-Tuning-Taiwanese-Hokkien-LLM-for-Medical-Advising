@@ -33,6 +33,7 @@ gitdb==4.0.12
 GitPython==3.1.44
 google-auth==2.38.0
 graphene==3.4.3
+gradio==5.27.1
 graphql-core==3.2.6
 graphql-relay==3.2.0
 gunicorn==23.0.0
@@ -106,3 +107,4 @@ wrapt==1.17.2
 xxhash==3.5.0
 yarl==1.19.0
 zipp==3.21.0
+prometheus-fastapi-instrumentator~=7.1.0
