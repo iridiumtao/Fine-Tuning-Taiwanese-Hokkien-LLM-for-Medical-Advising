@@ -296,6 +296,27 @@ diagram, (3) justification for your strategy, (4) relate back to lecture materia
 <!-- Make sure to clarify how you will satisfy the Unit 4 and Unit 5 requirements, 
 and which optional "difficulty" points you are attempting. -->
 
+To meet the Unit 4 and Unit 5 requirements, we deployed our model training workflow on Chameleon Cloud using a bare-metal GPU instance (taigi-gpu-node) running Ubuntu 24.04 with CUDA support. We used the Hugging Face transformers library for fine-tuning and MLflow for experiment tracking. Below are the details on how we satisfy each requirement:
+__Experiment tracking:__
+We hosted an MLflow tracking server on our instance via:
+```bash
+mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ./mlruns --no-serve-artifacts
+```
+Our training script train_stage2.py was instrumented with MLflow logging calls:
+```bash
+mlflow.set_tracking_uri("http://<floating-ip>:5000")
+mlflow.set_experiment("taigi-llm-training")
+```
+Metrics such as training loss and hyperparameters (learning rate, batch size, etc.) are logged using mlflow.log_params() and mlflow.log_metric().
+
+__Scheduling training jobs:__
+We manually launched training on the bare-metal GPU instance. As an optional “difficulty” enhancement, we plan to integrate Ray for job scheduling in future stages of the project. This would allow asynchronous submissions and parallel experimentation on Chameleon’s infrastructure.
+
+__Mixed-precision and model saving:__
+Training uses fp16=True for mixed precision, improving training speed and reducing memory usage. We addressed serialization issues with Accelerator().unwrap_model(model) to ensure the final model could be saved correctly for reuse or deployment.
+
+By combining the above with model-specific preprocessing (convert_to_instruction.py) and inference evaluation (inference.py), our full training pipeline is reproducible and modular.
+
 #### Model serving and monitoring platforms
 
 ##### Unit 6: Model serving
