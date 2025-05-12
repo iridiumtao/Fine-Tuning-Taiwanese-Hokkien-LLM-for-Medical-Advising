@@ -102,6 +102,10 @@ python3 inference.py
 ```
 You can now enter the question you want to ask.
 
+### Continuous X
+
+Follow instructions under "[/mlops](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/main/mlops)"
+
 
 ## Details
 <!-- 
