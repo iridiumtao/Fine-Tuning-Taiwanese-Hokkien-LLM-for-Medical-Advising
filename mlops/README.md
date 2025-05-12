@@ -41,7 +41,7 @@ The `mlops` folder contains the following Jupyter notebooks:
       ```
       However, in our setup, we use **bare metal nodes** (e.g., `compute_gigaio`) that are reserved manually via Horizon leases. **Terraform cannot create bare metal nodes**, so we omit this block entirely.
 
-      > 💡 Instead, Terraform will only handle:
+      > Instead, Terraform will only handle:
       > - Network ports (`openstack_networking_port_v2`)
       > - Floating IPs (`openstack_networking_floatingip_v2`)
       > - Security groups and interface attachments
@@ -67,7 +67,7 @@ The `mlops` folder contains the following Jupyter notebooks:
       - `sharednet1`: public-facing shared network (used for floating IPs)
       - Security groups: pre-defined access rules for common ports
 
-      > 💡 These `data` resources do **not** create anything. They fetch info about already existing networks and security groups in your Chameleon project.
+      > These `data` resources do **not** create anything. They fetch info about already existing networks and security groups in your Chameleon project.
 
         - **Initialize and Apply Terraform Configuration**  
       After defining the network and security group resources, use the following Terraform commands to provision the infrastructure.
@@ -92,7 +92,7 @@ The `mlops` folder contains the following Jupyter notebooks:
         terraform apply -auto-approve
         ```
 
-      > 💡 This will create:
+      > This will create:
       > - A private internal network (`private-net-mlops-*`)
       > - A subnet (`192.168.1.0/24`)
       > - Any security group associations or port references defined in `.tf` files
@@ -104,7 +104,7 @@ The `mlops` folder contains the following Jupyter notebooks:
       terraform output -json > outputs.json
       ```
 
-      > 🧩 This file (`outputs.json`) will be parsed in the next step to configure the Ansible inventory and playbooks accordingly.
+      > This file (`outputs.json`) will be parsed in the next step to configure the Ansible inventory and playbooks accordingly.
 
 3. **Create Nodes (`2_5_create_nodes.ipynb`)**  
     - This step provisions the **bare metal nodes** (node1, node2, node3) from your active lease and attaches network ports.
@@ -134,7 +134,7 @@ The `mlops` folder contains the following Jupyter notebooks:
       su cc -c /usr/local/bin/cc-load-public-keys
       ```
 
-      > 💡 Explanation:
+      > Explanation:
       > - `echo '127.0.1.1 {node}-mlops' >> /etc/hosts`  
       >   This ensures that the node has a resolvable hostname inside `/etc/hosts`, important for internal hostname resolution when Ansible or Kubernetes expects the node to know its hostname.
       >
@@ -145,6 +145,47 @@ The `mlops` folder contains the following Jupyter notebooks:
       After this notebook:
       - All three nodes (node1, node2, node3) are provisioned with ports, hostname set, and SSH keys installed.
       - Nodes are now reachable (after floating IP is bound to node1).
+
+4. **Configure SSH Access for Ansible (`3_practice_ansible.ipynb`)**  
+    - This step configures SSH access so that `node1` (which has a floating IP) can serve as a jump host for `node2` and `node3`.
+    - This setup is **essential for bare metal deployments** on CHI@UC because only one node has external network access.
+
+    ---
+
+    ### Why `~/.ssh/config` Is Needed (Not in Original Tutorial)
+
+    In the original `kvm@tacc` VM-based tutorial, all VMs have public IPs and can be accessed directly.  
+    But in **bare metal environments**, only `node1` has a floating IP — `node2` and `node3` are only reachable via the **internal private network**.
+
+    To allow tools like **Ansible** to reach those internal nodes automatically, we define a **jump host (proxy) configuration** in `~/.ssh/config`.  
+    This enables seamless SSH routing without manually typing jump commands.
+
+    ---
+
+    - Step-by-Step SSH Configuration
+
+        1. Step 1: Copy SSH Private Key to `node1` (from local machine)
+
+            You need to upload your private key to `node1` so that it can later use it to access `node2` and `node3`.(Floating ip 192.5.87.178 
+            might be changed)
+
+        2. Step 2: Configure SSH Daemon on `node1`
+
+        3. Step 3: Distribute Public Key to Other Nodes
+
+        4. Step 4: Edit `~/.ssh/config` on Your Local Machine to automate proxying to internal nodes
+    > **Result:**  
+    > You can now run `ssh node2` and `ssh node3` from your local machine (or Ansible) without manually setting up proxy commands each time.
+
+    - `ansible -i inventory.yml all -m ping`
+        This command tells Ansible to:
+        - Use the file `inventory.yml` as the host list
+        - Run the `ping` module (built-in)
+        - Try connecting to all hosts listed under `all`
+
+    - `ansible-playbook -i inventory.yml general/hello_host.yml`
+        This command runs a small Ansible playbook (`hello_host.yml`) that you prepared to check hostnames.
+
 
 
 
