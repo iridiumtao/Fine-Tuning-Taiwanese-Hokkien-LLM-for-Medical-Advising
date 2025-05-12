@@ -288,8 +288,8 @@ The `mlops` folder contains the following Jupyter notebooks:
         This playbook runs a full CI workflow on `node1`, including Docker image build and Argo workflow submission.
         > What this does:
         > - **Clones two parts of the repository**:
-            iac/ folder from the mlops branch
-            web/ folder from the serving-eval branch
+        >   - iac/ folder from the mlops branch
+        >   - web/ folder from the serving-eval branch
         > - **Builds Docker image**
         > - **Submits and monitors Argo Workflow**
     
@@ -323,10 +323,10 @@ The `mlops` folder contains the following Jupyter notebooks:
         ```
         > What this does:
         > - **Applies selected WorkflowTemplates from iac/workflows/**:
-            build-container-image.yaml: Builds a Docker image and pushes to registry
-            deploy-container-image.yaml: Deploys the image to staging/prod via Helm
-            train-model.yaml: Runs training job using specified dataset and configuration
-            promote-model.yaml: Promotes a trained model between environments
+        >   - build-container-image.yaml: Builds a Docker image and pushes to registry
+        >   - deploy-container-image.yaml: Deploys the image to staging/prod via Helm
+        >   - train-model.yaml: Runs training job using specified dataset and configuration
+        >   - promote-model.yaml: Promotes a trained model between environments
 
 
 ## How to Use
