@@ -36,7 +36,7 @@ python3 -m venv taigi-env
 source taigi-env/bin/activate
 ```
 
-### Step 3: Install requirement packages in your virtual environment:
+### Step 2: Install requirement packages in your virtual environment:
 
 ```shell
 pip install -r requirements.txt
@@ -52,13 +52,13 @@ pip install datasets
 ```
 
 
-### Step 4: Log in Hugging Face CLI with your own token:
+### Step 3: Log in Hugging Face CLI with your own token:
 
 ```shell
 huggingface-cli login
 ```
 
-### Step5: if you are retrainning the model, if you are not retrainning the model, skip to Step6.
+### Step4: if you are retrainning the model, if you are not retrainning the model, skip to Step5.
 
 ```shell
 cd scripts/
@@ -91,7 +91,7 @@ __Step 3:__ test it with `python -m bitsandbytes` command, it sould show:
 
 Than rerun python3 train_stage1.py, it should now work successfully.
 
-### Step6: Run inference.py to Chat with the model:
+### Step5: Run inference.py to Chat with the model:
 
 ```shell
 python3 inference.py
