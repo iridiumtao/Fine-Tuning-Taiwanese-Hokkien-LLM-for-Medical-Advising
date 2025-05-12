@@ -310,7 +310,7 @@ The ./docker folder is the endpoint for Unit 6 model serving, Unit 7 Evaluation 
 │       └── web.py
 ```
 
-**Backend**
+**[Backend](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/backend)**
 
 The backend of the project is powered by FastAPI, serving as the main interface for LLM-based response generation and status checking. The backend is containerized with Docker and integrated with MinIO for session storage. 
 
@@ -328,7 +328,7 @@ The backend of the project is powered by FastAPI, serving as the main interface 
 Serve GET /metrics:
 The application integrates with Prometheus for real-time metrics collection.
 
-**Monitor**
+**[Monitor](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/monitoring)**
 
 `docker-compose-monitor.yml`: The Docker Compose file that builds up Grafana and Prometheus for monitoring numbers of requests, response latency, and numbers of errors.
 - dashboard and data source definition is under config/grafana and config/grafana/dashboards to provide the same dashboard setup for each time the services are built and avoid ClickOps
