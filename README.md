@@ -387,7 +387,7 @@ The project has two feedback loops. User feedback loop collects “good response
 
 `docker-compose-labelstudio.yml`: The Docker Compose file that builds up Label Studio and a Jupyter Notebook for experiments.
 
-*[Frontend Web](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/web)**
+**[Frontend Web](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/tree/feature-human-approve-layer/docker/web)**
 
 The frontend of the project is powered by Gradio, providing a web-based UI for interacting with the LLM model and managing session-based conversations. 
 
