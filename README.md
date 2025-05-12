@@ -1,4 +1,7 @@
 # Fine-Tuning a Taiwanese Hokkien LLM for Medical Advising
+
+## Diagram
+
 ## Instructions
 
 **Please do not run any file on your local machine if you don't have enough RAM or GPU, your computer will explode!**
