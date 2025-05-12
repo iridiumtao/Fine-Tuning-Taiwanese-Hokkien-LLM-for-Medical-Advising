@@ -88,21 +88,6 @@ __Step 3:__ test it with `python -m bitsandbytes` command, it sould show:
 ![image](https://github.com/user-attachments/assets/36b4d98d-608b-40f6-910f-3b6cea2aab53)
 
 
-
-Than rerun python3 train_stage1.py, it should now work successfully.
-
-### Step5: Run inference.py to Chat with the model:
-
-```shell
-python3 inference.py
-```
-You can now enter the question you want to ask.
-__Step 3:__ test it with `python -m bitsandbytes` command, it sould show:
-
-![image](https://github.com/user-attachments/assets/36b4d98d-608b-40f6-910f-3b6cea2aab53)
-
-
-
 Than rerun python3 train_stage1.py, it should now work successfully.
 
 ## MLflow Experiment Tracking
