@@ -1,0 +1,5 @@
+apiVersion: v2
+name: taiwanese-llm-production
+version: 1.0.0
+description: Taiwanese-LLM Production Deployment
+

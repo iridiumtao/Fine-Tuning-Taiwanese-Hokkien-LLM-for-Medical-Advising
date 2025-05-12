@@ -1,0 +1,5 @@
+apiVersion: v2
+name: taiwanese-llm-staging
+version: 1.0.0
+description: Taiwanese-LLM Staging Deployment
+
