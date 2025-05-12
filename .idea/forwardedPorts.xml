@@ -38,6 +38,18 @@
           <option name="readOnly" value="false" />
         </ForwardedPortInfo>
       </entry>
+      <entry key="9000">
+        <ForwardedPortInfo>
+          <option name="hostPort" value="9000" />
+          <option name="readOnly" value="false" />
+        </ForwardedPortInfo>
+      </entry>
+      <entry key="9001">
+        <ForwardedPortInfo>
+          <option name="hostPort" value="9001" />
+          <option name="readOnly" value="false" />
+        </ForwardedPortInfo>
+      </entry>
       <entry key="9090">
         <ForwardedPortInfo>
           <option name="hostPort" value="9090" />
