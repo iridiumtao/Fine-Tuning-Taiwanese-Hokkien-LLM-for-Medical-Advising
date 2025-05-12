@@ -22,6 +22,93 @@ The `mlops` folder contains the following Jupyter notebooks:
     - **Install Kubespray Requirements**  
       Installs Python packages required for deploying Kubernetes with Kubespray.
 
+2. **Provision Infrastructure (`2_provision_tf.ipynb`)**  
+    - Uses Terraform to provision network interfaces and floating IPs on CHI@UC.
+    - Since Terraform cannot provision bare metal nodes directly, the nodes must be reserved via lease first (see **Create a Lease**).
+
+    - **Clarification: No `openstack_compute_instance_v2` Used**  
+      In VM-based tutorials (like `kvm@tacc`), instances are created like this:
+      ```hcl
+      resource "openstack_compute_instance_v2" "my_vm" {
+        name        = "${var.instance_hostname}"
+        flavor_name = "m1.small"
+        image_id    = data.openstack_images_image_v2.ubuntu.id
+        key_pair    = "my-keypair"
+        network {
+          name = "private-network"
+        }
+      }
+      ```
+      However, in our setup, we use **bare metal nodes** (e.g., `compute_gigaio`) that are reserved manually via Horizon leases. **Terraform cannot create bare metal nodes**, so we omit this block entirely.
+
+      > 💡 Instead, Terraform will only handle:
+      > - Network ports (`openstack_networking_port_v2`)
+      > - Floating IPs (`openstack_networking_floatingip_v2`)
+      > - Security groups and interface attachments
+
+        - **Create Private Network (MLOps Internal Use)**  
+      Terraform defines a private network (`192.168.1.0/24`) for internal communication between bare metal nodes (e.g., node1, node2, node3).
+      ```hcl
+      resource "openstack_networking_network_v2" "private_net" {
+        name                  = "private-net-mlops-${var.suffix}"
+        port_security_enabled = false
+      }
+
+      resource "openstack_networking_subnet_v2" "private_subnet" {
+        name       = "private-subnet-mlops-${var.suffix}"
+        network_id = openstack_networking_network_v2.private_net.id
+        cidr       = "192.168.1.0/24"
+        no_gateway = true
+      }
+      ```
+
+    - **Reference Shared Network and Security Groups**  
+      These `data` blocks are used to reference existing shared Chameleon Cloud resources.
+      - `sharednet1`: public-facing shared network (used for floating IPs)
+      - Security groups: pre-defined access rules for common ports
+
+      > 💡 These `data` resources do **not** create anything. They fetch info about already existing networks and security groups in your Chameleon project.
+
+        - **Initialize and Apply Terraform Configuration**  
+      After defining the network and security group resources, use the following Terraform commands to provision the infrastructure.
+
+      - Initialize Terraform with provider plugins:
+        ```bash
+        terraform init -upgrade
+        ```
+
+      - Validate the Terraform configuration:
+        ```bash
+        terraform validate
+        ```
+
+      - (Optional) Preview the changes without applying them:
+        ```bash
+        terraform plan
+        ```
+
+      - Apply the Terraform plan to provision resources:
+        ```bash
+        terraform apply -auto-approve
+        ```
+
+      > 💡 This will create:
+      > - A private internal network (`private-net-mlops-*`)
+      > - A subnet (`192.168.1.0/24`)
+      > - Any security group associations or port references defined in `.tf` files
+
+    - **Export Terraform Outputs to JSON (for next notebook)**  
+      After infrastructure is provisioned, export the resulting variables (like subnet ID, floating IP, etc.) to a JSON file that can be read by the next notebook (`2_5_create_nodes.ipynb`).
+
+      ```bash
+      terraform output -json > outputs.json
+      ```
+
+      > 🧩 This file (`outputs.json`) will be parsed in the next step to configure the Ansible inventory and playbooks accordingly.
+
+
+
+
 ## How to Use
 1. **Create a Lease (`CHI@UC` Bare Metal Reservation)**  
     - To use bare metal resources on Chameleon, we must reserve them in advance.
