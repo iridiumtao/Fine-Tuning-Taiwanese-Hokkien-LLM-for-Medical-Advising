@@ -259,11 +259,11 @@ conditions under which it may be used. -->
 how much/when, justification. Include compute, floating IPs, persistent storage. 
 The table below shows an example, it is not a recommendation. -->
 
-| Requirement     | How many/when                                     | Justification |
-|-----------------|---------------------------------------------------|---------------|
-| `m1.medium` VMs | 2 for entire project duration                     | ...           |
-| `gpu_mi100`     | 4 hour block twice a week                         |               |
-| Floating IPs    | 3 for on each cluster                             |               |
+| Requirement     | How many/when                                     | Justification                      |
+|-----------------|---------------------------------------------------|------------------------------------|
+| `m1.medium` VMs | 2 for entire project duration                     | data processing, serving           |
+| `gpu_mi100`     | 4 hour block twice a week                         |                                    |
+| Floating IPs    | 3                                                 | for on each cluster                |
 
 ### Detailed design plan
 
