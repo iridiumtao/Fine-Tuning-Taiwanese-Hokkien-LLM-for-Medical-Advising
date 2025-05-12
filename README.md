@@ -261,10 +261,9 @@ The table below shows an example, it is not a recommendation. -->
 
 | Requirement     | How many/when                                     | Justification |
 |-----------------|---------------------------------------------------|---------------|
-| `m1.medium` VMs | 3 for entire project duration                     | ...           |
+| `m1.medium` VMs | 2 for entire project duration                     | ...           |
 | `gpu_mi100`     | 4 hour block twice a week                         |               |
-| Floating IPs    | 1 for entire project duration, 1 for sporadic use |               |
-| etc             |                                                   |               |
+| Floating IPs    | 3 for on each cluster                             |               |
 
 ### Detailed design plan
 
