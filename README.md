@@ -36,12 +36,6 @@ python3 -m venv taigi-env
 source taigi-env/bin/activate
 ```
 
-### Step 2: Switch branch:
-
-```shell
-git checkout develop # or your working branch
-```
-
 ### Step 3: Install requirement packages in your virtual environment:
 
 ```shell
