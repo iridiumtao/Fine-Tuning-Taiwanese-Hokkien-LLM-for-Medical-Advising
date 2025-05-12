@@ -5,7 +5,7 @@
 
 ### Preparing data
 
-Follow instruction on notebook "dataNode_setUp.ipynb"
+Follow instruction on notebook "[dataNode_setUp.ipynb](https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/blob/main/dataNode_setUp.ipynb)"
 
 ### Create Server on Chameleon
 
