@@ -97,6 +97,45 @@ Than rerun python3 train_stage1.py, it should now work successfully.
 python3 inference.py
 ```
 You can now enter the question you want to ask.
+__Step 3:__ test it with `python -m bitsandbytes` command, it sould show:
+
+![image](https://github.com/user-attachments/assets/36b4d98d-608b-40f6-910f-3b6cea2aab53)
+
+
+
+Than rerun python3 train_stage1.py, it should now work successfully.
+
+## MLflow Experiment Tracking
+
+Enabled in `scripts/train_stage2.py`:
+
+```python
+mlflow.set_tracking_uri("http://<your-floating-ip>:5000")
+mlflow.set_experiment("taigi-llm-training")
+```
+
+All runs will appear at: `http://<your-floating-ip>:5000`
+
+### Launch MLflow tracking server
+
+```bash
+mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ./mlruns --no-serve-artifacts
+```
+
+- Open in browser: `http://<your-floating-ip>:5000`
+- Ensure port **5000 is open** in your security group AND allowed by `firewalld` on Chameleon
+
+### Step5. Run Inference with Confidence
+
+```bash
+python3 inference.py
+```
+
+You’ll get:
+- model response
+- confidence score per token
+- average confidence
+
 
 ### Continuous X
 
