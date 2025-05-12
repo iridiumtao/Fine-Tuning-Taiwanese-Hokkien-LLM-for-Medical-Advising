@@ -163,19 +163,13 @@ The `mlops` folder contains the following Jupyter notebooks:
     ---
 
     - Step-by-Step SSH Configuration
-
         1. Step 1: Copy SSH Private Key to `node1` (from local machine)
-
-            You need to upload your private key to `node1` so that it can later use it to access `node2` and `node3`.(Floating ip 192.5.87.178 
-            might be changed)
-
+            You need to upload your private key to `node1` so that it can later use it to access `node2` and `node3`.
         2. Step 2: Configure SSH Daemon on `node1`
-
         3. Step 3: Distribute Public Key to Other Nodes
-
         4. Step 4: Edit `~/.ssh/config` on Your Local Machine to automate proxying to internal nodes
-    > **Result:**  
-    > You can now run `ssh node2` and `ssh node3` from your local machine (or Ansible) without manually setting up proxy commands each time.
+        > **Result:**  
+        > You can now run `ssh node2` and `ssh node3` from your local machine (or Ansible) without manually setting up proxy commands each time.
 
     - `ansible -i inventory.yml all -m ping`
         This command tells Ansible to:
@@ -186,9 +180,55 @@ The `mlops` folder contains the following Jupyter notebooks:
     - `ansible-playbook -i inventory.yml general/hello_host.yml`
         This command runs a small Ansible playbook (`hello_host.yml`) that you prepared to check hostnames.
 
+5. **Deploy Kubernetes Cluster (`4_deploy_k8s.ipynb`)**  
+    - This notebook uses **Kubespray** to automate Kubernetes deployment across the three reserved bare metal nodes.
+    - Kubespray is an Ansible-based tool that simplifies the setup of multi-node Kubernetes clusters on cloud or physical machines.
+    - Run Pre-Kubernetes Configuration Playbook
+        - Before running, ensure that `pre_k8s_configure.yml` contains the correct floating IP (for `node1`) in its vars.
 
+        ```bash
+        cd ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible
+        ansible-playbook -i inventory.yml pre_k8s/pre_k8s_configure.yml
+        ```
 
+        > What this does:
+        > - Disables firewalld on all nodes to prevent port conflicts with Kubernetes services.
+        > - Configures Docker with an insecure registry for internal usage (registry.kube-system.svc.cluster.local:5000).
+        > - Ensures /etc/docker/daemon.json is correctly populated to allow pulling from internal container registries.
+        > - Ensures Docker is prepared for later container image pulls in kubeadm and ArgoCD.
 
+    - Deploy Kubernetes with Kubespray
+        This command uses Kubespray to install a full-featured Kubernetes cluster.
+
+        ```bash
+        cd ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible/k8s/kubespray
+
+        ansible-playbook \
+        -i ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible/k8s/inventory/mycluster/hosts.yaml \
+        --become \
+        --become-user=root \
+        ./cluster.yml
+        ```
+
+        > What this does:
+        > - **Installs Kubernetes components** such as `kubelet`, `kubeadm`, `kube-proxy`, and the container runtime on all nodes.
+        > - **Sets up configuration files and networking**, including `kubeconfig` for control access, Calico as the CNI plugin, and load balancing.
+
+    - Run Post-Kubernetes Configuration Playbook
+        - After the Kubernetes cluster is successfully deployed, this playbook completes setup and developer tooling.
+
+        ```bash
+        cd ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/iac/ansible
+        ansible-playbook -i inventory.yml post_k8s/post_k8s_configure.yml
+        ```
+
+        > What this does:
+        > - Kubernetes CLI setup: Copies admin.conf to /home/cc/.kube/config on node1 and node2 for direct use of kubectl
+        > - Adds user cc to the docker group and restarts the Docker service
+        > - Install Kubernetes Dashboard
+        > - Fix DNS Resolution: Configures system DNS using resolvectl to ensure internal and external names are resolvable
+        > - Installs ArgoCD CLI and server into the argocd namespace and patches the argocd-repo-server with custom DNS configuration
+        > - Install Argo Workflows & Argo Events: Deploys workflows into argo namespace, and events into argo-events
 
 ## How to Use
 1. **Create a Lease (`CHI@UC` Bare Metal Reservation)**  
