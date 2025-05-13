@@ -84,9 +84,9 @@ with mlflow.start_run():
 
     # Unwrap the PEFT Accelerate-wrapped model
     unwrapped_model = Accelerator().unwrap_model(model)
-    
+
     # Log model
-    mlflow.pytorch.log_model(Accelerator().unwrap_model(unwrapped_model), "model") 
+    mlflow.pytorch.log_model(unwrapped_model, "model") 
 
     # Log final metrics (add more if needed)
     mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
