@@ -8,6 +8,7 @@ import torch
 import mlflow
 import mlflow.pytorch
 from accelerate import Accelerator
+from transformers import LlamaTokenizer
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("taigi-llm-training")
@@ -16,9 +17,13 @@ mlflow.set_experiment("taigi-llm-training")
 dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
 
 # === Tokenizer & Model ===
-model_id = "../models/stage1"  # load the checkpoint from Stage 1
-tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
-tokenizer.pad_token = tokenizer.eos_token  # required for padding
+# model_id = "../models/stage1"  # load the checkpoint from Stage 1
+# tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+# tokenizer.pad_token = tokenizer.eos_token  # required for padding
+
+model_id = "../models/stage1"
+tokenizer = LlamaTokenizer.from_pretrained(model_id, use_fast=False)
+tokenizer.pad_token = tokenizer.eos_token
 
 def tokenize(example):
     return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
