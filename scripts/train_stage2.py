@@ -9,7 +9,7 @@ import mlflow
 import mlflow.pytorch
 from accelerate import Accelerator
 
-mlflow.set_tracking_uri("http://129.114.108.37:5000")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("taigi-llm-training")
 
 # === Load dataset from your combined file ===
