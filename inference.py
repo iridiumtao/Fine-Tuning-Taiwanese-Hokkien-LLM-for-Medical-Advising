@@ -5,7 +5,7 @@ from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 # Load model and tokenizer
 model_path = "models/stage2"
-tokenizer = LlamaTokenizer.from_pretrained(model_path)
+tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForCausalLM.from_pretrained(model_path)
 
 # Use GPU if available

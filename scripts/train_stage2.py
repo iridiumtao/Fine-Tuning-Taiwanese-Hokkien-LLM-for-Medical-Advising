@@ -22,7 +22,7 @@ dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_co
 # tokenizer.pad_token = tokenizer.eos_token  # required for padding
 
 model_id = "../models/stage1"
-tokenizer = LlamaTokenizer.from_pretrained(model_id, use_fast = False)
+tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 tokenizer.pad_token = tokenizer.eos_token
 
 def tokenize(example):
