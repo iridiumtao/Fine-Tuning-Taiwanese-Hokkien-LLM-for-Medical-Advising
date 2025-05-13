@@ -91,7 +91,6 @@ with mlflow.start_run():
     # Log final metrics (add more if needed)
     mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
 
-trainer.train()
 
 # === Save model ===
 unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
