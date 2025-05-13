@@ -87,9 +87,9 @@ with mlflow.start_run():
     mlflow.pytorch.log_model(unwrapped_model, "model")
 
     # Log final metrics (add more if needed)
-    # Log model (with example)
-    example_input = tokenizer("你好", return_tensors="pt").input_ids.cuda()
-    mlflow.pytorch.log_model(unwrapped_model, "model", input_example=example_input)
+    example_input = tokenizer("哩賀", return_tensors="pt")
+    input_ids_np = example_input["input_ids"].cpu().numpy()
+    mlflow.pytorch.log_model(unwrapped_model, "model", input_example={"input_ids": input_ids_np})
 
     # Log final loss (safely)
     final_loss = None
