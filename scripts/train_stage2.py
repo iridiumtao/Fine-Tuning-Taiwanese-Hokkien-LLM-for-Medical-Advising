@@ -101,11 +101,11 @@ with mlflow.start_run():
     if final_loss is not None:
         mlflow.log_metric("final_train_loss", final_loss)
     else:
-        print("⚠ No loss found in trainer.state.log_history.")
+        print("No loss found in trainer.state.log_history.")
 
 
 # === Save model ===
 unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
 tokenizer.save_pretrained("../models/stage2")
 
-mlflow.log_artifacts("./models/stage2", artifact_path="model")
+mlflow.log_artifacts("../models/stage2", artifact_path="model")
