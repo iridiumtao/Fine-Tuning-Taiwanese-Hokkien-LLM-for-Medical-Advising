@@ -87,7 +87,21 @@ with mlflow.start_run():
     mlflow.pytorch.log_model(unwrapped_model, "model")
 
     # Log final metrics (add more if needed)
-    mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
+    # Log model (with example)
+    example_input = tokenizer("你好", return_tensors="pt").input_ids.cuda()
+    mlflow.pytorch.log_model(unwrapped_model, "model", input_example=example_input)
+
+    # Log final loss (safely)
+    final_loss = None
+    for record in reversed(trainer.state.log_history):
+        if 'loss' in record:
+            final_loss = record['loss']
+            break
+
+    if final_loss is not None:
+        mlflow.log_metric("final_train_loss", final_loss)
+    else:
+        print("⚠ No loss found in trainer.state.log_history.")
 
 
 # === Save model ===
