@@ -1,10 +1,11 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import torch.nn.functional as F
+from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 # Load model and tokenizer
 model_path = "models/stage2"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
+tokenizer = LlamaTokenizer.from_pretrained(model_path)
 model = AutoModelForCausalLM.from_pretrained(model_path)
 
 # Use GPU if available
