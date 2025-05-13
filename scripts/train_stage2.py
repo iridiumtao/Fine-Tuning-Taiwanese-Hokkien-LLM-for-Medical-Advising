@@ -9,14 +9,14 @@ import mlflow
 import mlflow.pytorch
 from accelerate import Accelerator
 
-mlflow.set_tracking_uri("http://129.114.109.48:5000")
+mlflow.set_tracking_uri("http://129.114.108.37:5000")
 mlflow.set_experiment("taigi-llm-training")
 
 # === Load dataset from your combined file ===
 dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
 
 # === Tokenizer & Model ===
-model_id = "Bohanlu/Taigi-Llama-2-7B"
+model_id = "../models/stage1"  # load the checkpoint from Stage 1
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 tokenizer.pad_token = tokenizer.eos_token  # required for padding
 
@@ -49,11 +49,11 @@ training_args = TrainingArguments(
     output_dir="../models/stage2",
     per_device_train_batch_size=4,
     gradient_accumulation_steps=4,
-    num_train_epochs=3,
-    logging_steps=10,
-    save_strategy="epoch",
-    fp16=True,
-    report_to="none"
+    num_train_epochs = 3,
+    logging_steps = 10,
+    save_strategy = "epoch",
+    fp16 = True,
+    report_to = "none"
 )
 
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
