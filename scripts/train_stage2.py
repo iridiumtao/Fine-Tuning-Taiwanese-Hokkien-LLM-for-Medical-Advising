@@ -23,6 +23,8 @@ dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_co
 
 model_id = "../models/stage1"
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+print("Tokenizer:", tokenizer)
+print("Tokenizer class:", type(tokenizer))
 tokenizer.pad_token = tokenizer.eos_token
 
 def tokenize(example):
