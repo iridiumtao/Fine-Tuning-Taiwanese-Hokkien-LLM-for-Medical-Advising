@@ -29,7 +29,7 @@ services:
       - production_net
     volumes:
       - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
-      - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/models:/app/models:ro
+      - /mnt/object/models/v1:/app/models:ro
 
   # front-end web service
   gradio:

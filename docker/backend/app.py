@@ -36,7 +36,7 @@ s3 = boto3.client(
 if not IS_DUMMY:
     # Load model and tokenizer
     logger.info("Is not dummy, loading models")
-    model_path = "./models/stage2" # todo: potential problem!!!
+    model_path = "models/stage1" # todo: potential problem!!!
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(model_path)
 

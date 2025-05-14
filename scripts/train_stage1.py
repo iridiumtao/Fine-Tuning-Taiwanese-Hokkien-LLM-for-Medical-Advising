@@ -22,7 +22,9 @@ print("Using fast tokenizer?", tokenizer.is_fast)
 
 # Load dataset
 # dataset = load_dataset("json", data_files="../data/medical_qa_with_answer_text.jsonl")
-dataset = load_dataset("json", data_files = {"train": "../data/medical_qa_with_answer_text.jsonl"})
+
+# load processed data from object storage
+dataset = load_dataset("json", data_files = {"train": "/mnt/object/processed/train_formatted.jsonl/train_formatted.jsonl"})
 
 print(dataset["train"][0])
 
