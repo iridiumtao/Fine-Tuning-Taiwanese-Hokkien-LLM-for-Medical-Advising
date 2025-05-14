@@ -57,7 +57,7 @@ services:
       - MINIO_ROOT_USER=your-access-key
       - MINIO_ROOT_PASSWORD=your-secret-key
     volumes:
-      - minio_data:/data
+      - /mnt/block/minio_data:/data
     command: server /data --console-address ':9001'
     networks:
       - production_net

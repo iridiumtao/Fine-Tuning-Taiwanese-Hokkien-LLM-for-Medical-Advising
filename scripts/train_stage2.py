@@ -5,6 +5,12 @@ from transformers import (
 )
 from peft import LoraConfig, get_peft_model, TaskType
 import torch
+import mlflow
+import mlflow.pytorch
+from accelerate import Accelerator
+
+mlflow.set_tracking_uri("http://129.114.109.48:5000")
+mlflow.set_experiment("taigi-llm-training")
 
 # === Load dataset from your combined file ===
 dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
@@ -60,8 +66,29 @@ trainer = Trainer(
     data_collator=data_collator
 )
 
+with mlflow.start_run():
+    # Log config
+    mlflow.log_params({
+        "lr": training_args.learning_rate,
+        "epochs": training_args.num_train_epochs,
+        "batch_size": training_args.per_device_train_batch_size
+    })
+
+    # Train
+    trainer.train()
+
+    # Unwrap the PEFT Accelerate-wrapped model
+    unwrapped_model = Accelerator().unwrap_model(model)
+    # Log model
+    mlflow.pytorch.log_model(unwrapped_model, "model")
+
+    # Log final metrics (add more if needed)
+    mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
+
 trainer.train()
 
 # === Save model ===
-model.save_pretrained("../models/stage2")
+unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
 tokenizer.save_pretrained("../models/stage2")
+
+mlflow.log_artifacts("./models/stage2", artifact_path="model")

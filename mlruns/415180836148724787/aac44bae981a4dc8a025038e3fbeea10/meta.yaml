@@ -1,0 +1,15 @@
+artifact_uri: /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/mlruns/415180836148724787/aac44bae981a4dc8a025038e3fbeea10/artifacts
+end_time: 1746982235660
+entry_point_name: ''
+experiment_id: '415180836148724787'
+lifecycle_stage: active
+run_id: aac44bae981a4dc8a025038e3fbeea10
+run_name: adorable-snake-782
+run_uuid: aac44bae981a4dc8a025038e3fbeea10
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746982135196
+status: 4
+tags: []
+user_id: cc
