@@ -13,7 +13,7 @@ mlflow.set_tracking_uri("http://129.114.109.48:5000")
 mlflow.set_experiment("taigi-llm-training")
 
 # === load processed data from object storage ===
-dataset = load_dataset("json", data_files={"train": "/mnt/object/processed/hokkien_pretrain_combined.jsonl/hokkien_pretrain_combined.jsonl"})
+dataset = load_dataset("json", data_files={"train": "/mnt/object/processed/hokkien_pretrain_train.jsonl"})
 
 # === Tokenizer & Model ===
 model_id = "Bohanlu/Taigi-Llama-2-7B"

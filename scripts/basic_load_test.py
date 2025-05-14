@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import numpy as np
 
 FASTAPI_URL = "http://localhost:8000/generate"
-NUM_REQUESTS = 100
+NUM_REQUESTS = 10
 TEMPERATURE = 0.7
 TOP_P = 0.95
 PROMPT = "頭殼痛"  # Taigi for “headache”
