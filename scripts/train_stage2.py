@@ -21,7 +21,7 @@ dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_co
 # tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 # tokenizer.pad_token = tokenizer.eos_token  # required for padding
 
-model_id = "Bohanlu/Taigi-Llama-2-13B"
+model_id = "Bohanlu/Taigi-Llama-2-7B"
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
 print("Tokenizer:", tokenizer)
 print("Tokenizer class:", type(tokenizer))
