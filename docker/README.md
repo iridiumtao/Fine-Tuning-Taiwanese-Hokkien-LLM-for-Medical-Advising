@@ -20,6 +20,13 @@ docker network create production_net
 
 This step is required because the `docker-compose` files reference an external network called `production_net`.
 
+Also set up block storage configurations
+
+```bash
+sudo mkdir -p /mnt/block/airflow_shared/logs # if needed
+sudo mkdir -p /mnt/block/airflow_shared/plugins
+sudo chown -R 50000:0 /mnt/block/airflow_shared
+```
 ---
 
 ### Backend Services (FastAPI, Gradio)
