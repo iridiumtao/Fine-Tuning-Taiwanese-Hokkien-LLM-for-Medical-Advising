@@ -8,6 +8,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 from datetime import datetime
 import json
+import torch.nn.functional as F
+
 
 app = FastAPI()
 
@@ -36,7 +38,7 @@ s3 = boto3.client(
 if not IS_DUMMY:
     # Load model and tokenizer
     logger.info("Is not dummy, loading models")
-    model_path = "./models/stage2" # todo: potential problem!!!
+    model_path = "models/stage1"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(model_path)
 
@@ -69,12 +71,23 @@ def _generate(request: GenerationRequest):
             top_p=request.top_p,
             temperature=request.temperature,
             repetition_penalty=1.2,
+            # return_dict_in_generate=True,
+            # output_scores=True,
             pad_token_id=tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
 
     generated = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    return {"prediction": generated, "probability": 1.0}
+    #
+    # # Extract generated token ids (excluding prompt)
+    # generated_ids = output_ids.sequences[0][inputs.input_ids.shape[-1]:]
+    #
+    # # Extract scores (logits → probs)
+    # logits = torch.stack(output_ids.scores, dim=1)[0]  # shape: [num_tokens, vocab_size]
+    # probs = F.softmax(logits, dim=- 1)
+    # confidences = probs[range(len(generated_ids)), generated_ids]
+
+    return {"prediction": generated, "probability": 1}
 
 @app.post("/generate")
 def generate(request: GenerationRequest):

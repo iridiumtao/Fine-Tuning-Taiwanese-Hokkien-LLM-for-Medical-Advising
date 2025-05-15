@@ -13,8 +13,8 @@ from transformers import LlamaTokenizer
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("taigi-llm-training")
 
-# === Load dataset from your combined file ===
-dataset = load_dataset("json", data_files={"train": "../data/hokkien_pretrain_combined.jsonl"})
+# === load processed data from object storage ===
+dataset = load_dataset("json", data_files={"train": "/mnt/object/processed/hokkien_pretrain_train.jsonl"})
 
 # === Tokenizer & Model ===
 # model_id = "../models/stage1"  # load the checkpoint from Stage 1
@@ -110,4 +110,4 @@ with mlflow.start_run():
 unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)
 tokenizer.save_pretrained("../models/stage2")
 
-mlflow.log_artifacts("../models/stage2", artifact_path="model")
+mlflow.log_artifacts("./models/stage2", artifact_path="model")

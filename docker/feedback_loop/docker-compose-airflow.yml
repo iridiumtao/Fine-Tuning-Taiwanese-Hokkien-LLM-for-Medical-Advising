@@ -36,7 +36,7 @@ services:
       - MINIO_PASSWORD=your-secret-key
     volumes:
       - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/airflow/dags:/opt/airflow/dags
-      - /mnt/block/airflow_shared:/opt/airflow
+      - airflow_shared:/opt/airflow
     depends_on:
       airflow-setup:
         condition: service_completed_successfully
@@ -61,7 +61,7 @@ services:
       - MINIO_PASSWORD=your-secret-key
     volumes:
       - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/airflow/dags:/opt/airflow/dags
-      - /mnt/block/airflow_shared:/opt/airflow
+      - airflow_shared:/opt/airflow
     depends_on:
       airflow-setup:
         condition: service_completed_successfully
@@ -81,7 +81,7 @@ services:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
     volumes:
       - /home/cc/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/configs/airflow/dags:/opt/airflow/dags
-      - /mnt/block/airflow_shared:/opt/airflow
+      - airflow_shared:/opt/airflow
     networks:
       - production_net
     restart: "no"

@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.13 (Congress-Tracker)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 virtualenv at ~/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising/taigi-env" project-jdk-type="Python SDK" />
 </project>

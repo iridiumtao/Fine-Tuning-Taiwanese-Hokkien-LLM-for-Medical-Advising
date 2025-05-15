@@ -261,6 +261,11 @@ ipython_config.py
 .pdm-python
 .pdm-build/
 
+# Prevent data and models from being uploaded
+data/
+data_clean/
+models/
+
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 

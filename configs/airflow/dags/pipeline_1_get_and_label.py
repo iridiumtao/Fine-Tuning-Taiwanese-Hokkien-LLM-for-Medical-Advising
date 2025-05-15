@@ -1,265 +1,276 @@
+# dags/pipeline_1_get_and_label.py
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+import json
+import os
+import random
+
+import boto3
+import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime, timedelta, timezone
-import boto3
-import os
 from botocore.exceptions import ClientError
-import requests
 
-default_args = {
-    'owner': 'airflow',
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-}
+# ─────────────── Configuration ───────────────
+BUCKET_SRC = "production"
+PREFIX_SRC   = "conversation_logs/"
+BUCKET_WAIT = "production-label-wait"
+BUCKET_NOISY = "production-noisy"
+
+LABEL_STUDIO_URL = os.environ["LABEL_STUDIO_URL"].rstrip("/")
+LS_TOKEN = os.environ["LABEL_STUDIO_USER_TOKEN"]
+PROJECT_NAME = "Taigi Medical LLM – User‑Feedback"
 
 SAMPLE_SIZE = 5
 LOW_CONFIDENCE_THRESHOLD = 0.7
-PROJECT_NAME = "Taigi Medical LLM"
 
+default_args = {
+    "owner": "airflow",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
 
-def ensure_buckets_exist(bucket_names):
-    s3 = boto3.client(
-        's3',
-        endpoint_url=os.environ['MINIO_URL'],
-        aws_access_key_id=os.environ['MINIO_USER'],
-        aws_secret_access_key=os.environ['MINIO_PASSWORD'],
-        region_name="us-east-1"
-    )
-    existing_buckets = {b['Name'] for b in s3.list_buckets()['Buckets']}
-    for bucket in bucket_names:
-        if bucket not in existing_buckets:
-            print(f"Creating bucket: {bucket}")
-            s3.create_bucket(Bucket=bucket)
-        else:
-            print(f"Bucket already exists: {bucket}")
-
-
-def init_buckets_task(**context):
-    ensure_buckets_exist(['production-label-wait', 'production-noisy'])
-
-
-def sample_production_responses(**context):
-    """
-    Sample LLM-generated responses from MinIO, filter them based on confidence and flags,
-    and push the results to XCom for further processing in the Airflow pipeline.
-    """
-
-    # Initialize S3 client to connect to MinIO
-    s3 = boto3.client(
-        's3',
-        endpoint_url=os.environ['MINIO_URL'],
-        aws_access_key_id=os.environ['MINIO_USER'],
-        aws_secret_access_key=os.environ['MINIO_PASSWORD'],
-        region_name="us-east-1"
+# ─────────────── Utilities ───────────────
+def s3():
+    return boto3.client(
+        "s3",
+        endpoint_url=os.environ["MINIO_URL"],
+        aws_access_key_id=os.environ["MINIO_USER"],
+        aws_secret_access_key=os.environ["MINIO_PASSWORD"],
+        region_name="us-east-1",
     )
 
-    if context['dag_run'].external_trigger:
-        # Manual run — use current time window
-        end = datetime.now(timezone.utc)
+
+# ─────────────── Task: ensure buckets ───────────────
+def ensure_buckets(**context):
+    cli = s3()
+    needed = {BUCKET_SRC, BUCKET_WAIT, BUCKET_NOISY}
+    existing = {b["Name"] for b in cli.list_buckets()["Buckets"]}
+    for b in needed - existing:
+        cli.create_bucket(Bucket=b)
+
+
+# ─────────────── Task: sample responses ───────────────
+def sample_responses(**context):
+    """
+    Scan production/conversation_logs/ for JSON session files, filter by
+    time window, confidence score, and S3 tag 'feedback_type'.
+    Items with feedback_type == 'none' are ignored.
+    Selected items (low‑confidence or dislike) are pushed to XCom:
+        key='selected'  → list used for human review & copy to WAIT bucket
+        key='all'       → list of *all* items in window, for later move step
+    """
+    cli = s3()  # helper defined elsewhere
+
+    # ----- define time window -----
+    if context["dag_run"].external_trigger:
+        # manual run: last 30 minutes
+        end   = datetime.now(timezone.utc)
         start = end - timedelta(minutes=30)
-        print("Manual trigger, using real-time window:", start, "to", end)
     else:
-        # Scheduled run — use the defined data interval
-        start = context['data_interval_start'].astimezone(timezone.utc)
-        end = context['data_interval_end'].astimezone(timezone.utc)
-        print("Scheduled run, using data interval:", start, "to", end)
+        start = context["data_interval_start"].astimezone(timezone.utc)
+        end   = context["data_interval_end"].astimezone(timezone.utc)
 
-    # Initialize categories for sorting responses
-    low_conf = []
-    flagged = []
-    good_responses = []
+    low_conf, disliked, others = [], [], []
 
-    # Use Paginator to iterate through all objects in the 'production-responses' bucket
-    paginator = s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket='production-responses'):
+    paginator = cli.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=BUCKET_SRC, Prefix=PREFIX_SRC):
         for obj in page.get("Contents", []):
             key = obj["Key"]
-
             try:
-                # Fetch the content of the object (the LLM response)
-                response = s3.get_object(Bucket='production-responses', Key=key)
-                content = response['Body'].read().decode('utf-8')
+                # -------- read JSON content --------
+                data = json.loads(
+                    cli.get_object(Bucket=BUCKET_SRC, Key=key)["Body"].read()
+                )
 
-                # Retrieve the tags (metadata) associated with the object
-                tags = s3.get_object_tagging(Bucket='production-responses', Key=key)['TagSet']
-                tag_dict = {t['Key']: t['Value'] for t in tags}
+                # -------- read S3 object tags --------
+                tag_dict = {
+                    t["Key"]: t["Value"]
+                    for t in cli.get_object_tagging(
+                        Bucket=BUCKET_SRC, Key=key
+                    )["TagSet"]
+                }
+                feedback_type = tag_dict.get("feedback_type", "none")  # like / dislike / none
+                if feedback_type == "none":
+                    continue  # skip items with no explicit feedback
 
-                # Skip the object if there is no timestamp
-                timestamp = tag_dict.get("timestamp")
-                if not timestamp:
+                # -------- timestamp filter --------
+                ts_raw = data.get("timestamp")
+                if not ts_raw:
                     continue
-
-                # Convert the timestamp to datetime and filter based on the defined time window
-                ts = datetime.fromisoformat(timestamp)
+                ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
                 if not (start <= ts < end):
                     continue
 
-                # Extract metadata values
-                confidence = float(tag_dict.get("confidence", 0))
-                flagged_bool = tag_dict.get("flagged") == "true"
-
-                # Build the item dictionary for easier handling
+                # -------- build item dict --------
                 item = {
                     "key": key,
-                    "response": content,
-                    "confidence": confidence,
-                    "flagged": flagged_bool
+                    "prompt":   data.get("prompt", ""),
+                    "response": data.get("response", ""),
+                    "confidence": float(tag_dict.get("confidence", 1.0)),
+                    "feedback":  feedback_type,  # like / dislike
                 }
 
-                # Categorize the responses based on confidence and flags
-                if confidence < LOW_CONFIDENCE_THRESHOLD:
+                # -------- categorize --------
+                if item["confidence"] < LOW_CONFIDENCE_THRESHOLD:
                     low_conf.append(item)
-                elif flagged_bool:
-                    flagged.append(item)
+                elif feedback_type == "dislike":
+                    disliked.append(item)
                 else:
-                    good_responses.append(item)
+                    others.append(item)  # 'like' responses above threshold
 
-            except ClientError as e:
-                print(f"Error retrieving object {key}: {e}")
-                continue
+            except (ClientError, json.JSONDecodeError) as e:
+                print(f"Skip {key}: {e}")
 
+    # selected = low_conf + disliked, limited to SAMPLE_SIZE
+    selected = low_conf + disliked
+    if len(selected) > SAMPLE_SIZE:
+        selected = random.sample(selected, SAMPLE_SIZE)
 
-    # Combine low-confidence and flagged for final selection
-    selected = low_conf + flagged
-    # Logging the statistics of the sample
-    print(f"Low confidence responses: {len(low_conf)}")
-    print(f"Flagged responses: {len(flagged)}")
-    print(f"Total selected for labeling: {len(selected)}")
+    # push to XCom
+    ti = context["ti"]
+    ti.xcom_push(key="selected", value=selected)
+    ti.xcom_push(key="all",      value=low_conf + disliked + others)
 
-    context['ti'].xcom_push(key='selected_responses', value=selected)
-    context['ti'].xcom_push(key='all_responses', value=low_conf + flagged + good_responses)
-
-
-def move_sampled_responses(**context):
-    s3 = boto3.client(
-        's3',
-        endpoint_url=os.environ['MINIO_URL'],
-        aws_access_key_id=os.environ['MINIO_USER'],
-        aws_secret_access_key=os.environ['MINIO_PASSWORD'],
-        region_name="us-east-1"
+    # log summary
+    print(
+        f"sample_responses → low={len(low_conf)}, "
+        f"dislike={len(disliked)}, like/other={len(others)}, "
+        f"selected={len(selected)}"
     )
 
-    selected = context['ti'].xcom_pull(key='selected_responses', task_ids='sample_production_responses')
-    all_items = context['ti'].xcom_pull(key='all_responses', task_ids='sample_production_responses')
-    selected_keys = {item['key'] for item in selected}
+
+# ─────────────── Task: move objects ───────────────
+def move_objects(**context):
+    cli = s3()
+    selected = context["ti"].xcom_pull(task_ids="sample_responses", key="selected") or []
+    all_items = context["ti"].xcom_pull(task_ids="sample_responses", key="all") or []
+    selected_keys = {i["key"] for i in selected}
 
     for item in all_items:
-        source_key = item['key']
-        target_bucket = 'production-label-wait' if source_key in selected_keys else 'production-noisy'
-        s3.copy_object(
-            Bucket=target_bucket,
-            CopySource={'Bucket': 'production-responses', 'Key': source_key},
-            Key=source_key
+        target = BUCKET_WAIT if item["key"] in selected_keys else BUCKET_NOISY
+        cli.copy_object(
+            Bucket=target,
+            CopySource={"Bucket": BUCKET_SRC, "Key": item["key"]},
+            Key=item["key"],
         )
 
 
-def create_label_studio_project(**context):
-    label_studio_url = os.environ['LABEL_STUDIO_URL']
-    token = os.environ['LABEL_STUDIO_USER_TOKEN']
-    headers = {"Authorization": f"Token {token}"}
-
-    response = requests.get(f"{label_studio_url}/api/projects", headers=headers)
-    response.raise_for_status()
-    projects = response.json().get('results', [])
-
-    for p in projects:
-        if p['title'] == PROJECT_NAME:
-            context['ti'].xcom_push(key='project_id', value=p['id'])
+# ─────────────── Task: ensure LS project ───────────────
+def ensure_ls_project(**context):
+    headers = {"Authorization": f"Token {LS_TOKEN}"}
+    r = requests.get(f"{LABEL_STUDIO_URL}/api/projects", headers=headers, timeout=10)
+    r.raise_for_status()
+    for p in r.json().get("results", []):
+        if p["title"] == PROJECT_NAME:
+            context["ti"].xcom_push(key="pid", value=p["id"])
             return
 
-    label_config = """
+    label_cfg = """
     <View>
-      <Text name="prompt" value="$prompt"/>
       <Text name="response" value="$response"/>
-      <View style="box-shadow: 2px 2px 5px #999;
-                   padding: 20px; margin-top: 2em;
-                   border-radius: 5px;">
-        <Header value="Choose text sentiment"/>
-        <Choices name="sentiment" toName="response"
-                 choice="single" showInLine="true">
-          <Choice value="Good Response"/>
-          <Choice value="Bad Response"/>
-        </Choices>
-      </View>
+      <Choices name="sentiment" toName="response" choice="single" showInLine="true">
+        <Choice value="good">Good Response</Choice>
+        <Choice value="bad">Bad Response</Choice>
+      </Choices>
     </View>
     """
-    payload = {
-        "title": PROJECT_NAME,
-        "label_config": label_config
-    }
-    res = requests.post(f"{label_studio_url}/api/projects", headers=headers, json=payload)
+    res = requests.post(
+        f"{LABEL_STUDIO_URL}/api/projects",
+        headers=headers,
+        json={"title": PROJECT_NAME, "label_config": label_cfg},
+        timeout=10,
+    )
     res.raise_for_status()
-    project_id = res.json()["id"]
-    context['ti'].xcom_push(key='project_id', value=project_id)
+    context["ti"].xcom_push(key="pid", value=res.json()["id"])
 
 
-def send_tasks_to_label_studio(**context):
-    all_responses = context['ti'].xcom_pull(key='all_responses', task_ids='sample_production_responses')
-    project_id = context['ti'].xcom_pull(task_ids='create_label_studio_project', key='project_id')
-
-    if not all_responses:
+# ─────────────── Task: send tasks to LS ───────────────
+def import_to_ls(**context):
+    """
+    Pull selected responses from XCom and import them into Label Studio.
+    Skip any item whose s3_key has already been imported (dedup).
+    """
+    # ----- Retrieve data from previous tasks -----
+    selected = context["ti"].xcom_pull(
+        task_ids="sample_responses", key="selected"
+    ) or []
+    if not selected:
+        print("No selected tasks to import.")
         return
 
-    # Originally used for store images
-    # public_ip = requests.get("http://169.254.169.254/latest/meta-data/public-ipv4").text.strip()
-    # s3 = boto3.client(
-    #     's3',
-    #     endpoint_url=f"http://{public_ip}:9000",
-    #     aws_access_key_id=os.environ['MINIO_USER'],
-    #     aws_secret_access_key=os.environ['MINIO_PASSWORD'],
-    #     region_name="us-east-1"
-    # )
-
-    label_studio_url = os.environ['LABEL_STUDIO_URL']
-    token = os.environ['LABEL_STUDIO_USER_TOKEN']
-    headers = {"Authorization": f"Token {token}"}
-
-    tasks = []
-    for item in all_responses:
-        tasks.append({
-            "data": item,
-            "meta": {"original_key": item['key']}
-        })
-
-    requests.post(
-        f"{label_studio_url}/api/projects/{project_id}/import",
-        json=tasks,
-        headers=headers
+    project_id = context["ti"].xcom_pull(
+        task_ids="ensure_ls_project", key="pid"
     )
+    if not project_id:
+        raise ValueError("Project ID not found in XCom.")
+
+    # ----- Label Studio API setup -----
+    headers = {"Authorization": f"Token {LS_TOKEN}"}
+
+    # Get already‑imported keys for deduplication
+    imported_keys = set()
+    try:
+        r = requests.get(
+            f"{LABEL_STUDIO_URL}/api/projects/{project_id}/tasks",
+            headers=headers,
+            timeout=15,
+        )
+        if r.status_code == 200:
+            for t in r.json():
+                imported_keys.add(t.get("meta", {}).get("original_key"))
+    except Exception as e:
+        print(f"Warning: could not list existing tasks → {e}")
+
+    # Filter out duplicates
+    payload_tasks = []
+    for item in selected:
+        if item["key"] in imported_keys:
+            continue
+        payload_tasks.append(
+            {
+                "data": {
+                    "prompt": item["prompt"],
+                    "response": item["response"],
+                },
+                "meta": {
+                    "original_key": item["key"],
+                    "feedback": item["feedback"],  # like / dislike
+                },
+            }
+        )
+
+    if not payload_tasks:
+        print("All tasks already imported; nothing new to send.")
+        return
+
+    # ----- Import tasks -----
+    res = requests.post(
+        f"{LABEL_STUDIO_URL}/api/projects/{project_id}/import",
+        json=payload_tasks,
+        headers=headers,
+        timeout=30,
+    )
+    print("LS import response:", res.json())
+    res.raise_for_status()
 
 
+# ─────────────── DAG Definition ───────────────
 with DAG(
-        dag_id='pipeline_1_get_and_label',
-        default_args=default_args,
-        description='Sample and tag production data for human review',
-        start_date=datetime.today() - timedelta(days=1),
-        schedule_interval="@daily",
-        catchup=False,
+    dag_id="pipeline_1_get_and_label",
+    description="Sample & tag production data for human review",
+    default_args=default_args,
+    start_date=datetime(2025, 5, 10),
+    schedule_interval="@daily",
+    catchup=False,
+    tags=["taigi-mlops", "feedback"],
 ) as dag:
-    init_buckets = PythonOperator(
-        task_id='init_buckets',
-        python_callable=init_buckets_task
-    )
+    t_init = PythonOperator(task_id="ensure_buckets", python_callable=ensure_buckets)
+    t_sample = PythonOperator(task_id="sample_responses", python_callable=sample_responses)
+    t_move = PythonOperator(task_id="move_objects", python_callable=move_objects)
+    t_project = PythonOperator(task_id="ensure_ls_project", python_callable=ensure_ls_project)
+    t_import = PythonOperator(task_id="import_to_ls", python_callable=import_to_ls)
 
-    sample_production_responses_task = PythonOperator(
-        task_id='sample_production_responses',
-        python_callable=sample_production_responses
-    )
-
-    move_sampled_responses_task = PythonOperator(
-        task_id='move_sampled_responses',
-        python_callable=move_sampled_responses
-    )
-
-    create_project_task = PythonOperator(
-        task_id='create_label_studio_project',
-        python_callable=create_label_studio_project
-    )
-
-    label_studio_task = PythonOperator(
-        task_id='send_tasks_to_label_studio',
-        python_callable=send_tasks_to_label_studio
-    )
-
-    init_buckets >> sample_production_responses_task >> move_sampled_responses_task
-    [move_sampled_responses_task, create_project_task] >> label_studio_task
+    t_init >> t_sample >> t_move
+    [t_move, t_project] >> t_import

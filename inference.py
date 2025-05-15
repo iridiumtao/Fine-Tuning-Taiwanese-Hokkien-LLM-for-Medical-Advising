@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 # Load model and tokenizer
-model_path = "models/stage2"
+model_path = "models/stage1"
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForCausalLM.from_pretrained(model_path)
 
