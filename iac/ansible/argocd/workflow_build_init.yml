@@ -1,0 +1,69 @@
+- name: Run Argo Workflow from GitHub Repo
+  hosts: node1
+  become: yes
+  vars:
+    repo_url: https://github.com/LawrenceLu0904/Fine-Tuning-Taiwanese-Hokkien-LLM-for-Medical-Advising.git
+    iac_dest: /tmp/iac
+    web_dest: /tmp/web
+    workflow_file: iac/workflows/build-initial.yaml   
+    workflow_name: build-initial
+    argo_namespace: argo
+
+  tasks:
+    - name: Clone or update iac repo(mlops branch)
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ iac_dest }}"
+        version: mlops
+    
+    - name: Clone only web directory from serving-eval branch
+      shell: |
+        rm -rf {{ web_dest }} && mkdir -p {{ web_dest }}
+        cd {{ web_dest }}
+        git init
+        git remote add origin {{ repo_url }}
+        git config core.sparseCheckout true
+        echo "web/" > .git/info/sparse-checkout
+        git pull --depth=1 origin serving-eval
+      args:
+        executable: /bin/bash
+    
+    - name: Build Docker image for taiwanese-llm-app
+      shell: |
+        docker build -t yixuan0760/taiwanese-llm-app:staging-1.0.0 {{ web_dest }}/web
+      args:
+        executable: /bin/bash
+
+    - name: Push Docker image to DockerHub
+      shell: |
+        docker push yixuan0760/taiwanese-llm-app:staging-1.0.0
+      args:
+        executable: /bin/bash
+
+    - name: Submit Argo Workflow
+      command: kubectl -n {{ argo_namespace }} create -f {{ iac_dest }}/{{ workflow_file }}
+      register: workflow_submit
+
+    - name: Extract Workflow Name
+      set_fact:
+        workflow_name_generated: "{{ workflow_submit.stdout.split(' ')[0].split('/')[1] }}"
+
+    - name: Wait for workflow to complete (success or fail)
+      shell: |
+        kubectl -n {{ argo_namespace }} wait --for=condition=Completed workflow/{{ workflow_name_generated }} --timeout=600s
+      register: workflow_status
+      failed_when: workflow_status.rc != 0
+
+    - name: Get final workflow result
+      shell: |
+        kubectl -n {{ argo_namespace }} get workflow {{ workflow_name_generated }} -o jsonpath="{.status.phase}"
+      register: workflow_phase
+
+    - name: Display workflow phase
+      debug:
+        msg: "Workflow {{ workflow_name_generated }} finished with status: {{ workflow_phase.stdout }}"
+
+    - name: Fail if workflow did not succeed
+      fail:
+        msg: "Workflow {{ workflow_name_generated }} failed with status: {{ workflow_phase.stdout }}"
+      when: workflow_phase.stdout != "Succeeded"

@@ -28,7 +28,6 @@ sudo mkdir -p /mnt/block/airflow_shared/plugins
 sudo chown -R 50000:0 /mnt/block/airflow_shared
 ```
 
----
 
 ### Backend Services (FastAPI, Gradio)
 

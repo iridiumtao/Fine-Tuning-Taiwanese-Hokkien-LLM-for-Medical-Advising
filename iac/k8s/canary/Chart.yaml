@@ -1,0 +1,5 @@
+apiVersion: v2
+name: taiwanese-llm-canary
+version: 1.0.0
+description: Taiwanese-LLM Canary Deployment
+

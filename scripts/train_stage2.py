@@ -8,17 +8,24 @@ import torch
 import mlflow
 import mlflow.pytorch
 from accelerate import Accelerator
+from transformers import LlamaTokenizer
 
-mlflow.set_tracking_uri("http://129.114.109.48:5000")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("taigi-llm-training")
 
 # === load processed data from object storage ===
 dataset = load_dataset("json", data_files={"train": "/mnt/object/processed/hokkien_pretrain_train.jsonl"})
 
 # === Tokenizer & Model ===
+# model_id = "../models/stage1"  # load the checkpoint from Stage 1
+# tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
+# tokenizer.pad_token = tokenizer.eos_token  # required for padding
+
 model_id = "Bohanlu/Taigi-Llama-2-7B"
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast = False)
-tokenizer.pad_token = tokenizer.eos_token  # required for padding
+print("Tokenizer:", tokenizer)
+print("Tokenizer class:", type(tokenizer))
+tokenizer.pad_token = tokenizer.eos_token
 
 def tokenize(example):
     return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
@@ -49,11 +56,11 @@ training_args = TrainingArguments(
     output_dir="../models/stage2",
     per_device_train_batch_size=4,
     gradient_accumulation_steps=4,
-    num_train_epochs=3,
-    logging_steps=10,
-    save_strategy="epoch",
-    fp16=True,
-    report_to="none"
+    num_train_epochs = 3,
+    logging_steps = 10,
+    save_strategy = "epoch",
+    fp16 = True,
+    report_to = "none"
 )
 
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -78,14 +85,26 @@ with mlflow.start_run():
     trainer.train()
 
     # Unwrap the PEFT Accelerate-wrapped model
-    unwrapped_model = Accelerator().unwrap_model(model)
-    # Log model
+    unwrapped_model = model.base_model
     mlflow.pytorch.log_model(unwrapped_model, "model")
 
     # Log final metrics (add more if needed)
-    mlflow.log_metric("final_train_loss", trainer.state.log_history[-1]['loss'])
+    example_input = tokenizer("哩賀", return_tensors="pt")
+    input_ids_np = example_input["input_ids"].cpu().numpy()
+    mlflow.pytorch.log_model(unwrapped_model, "model", input_example={"input_ids": input_ids_np})
 
-trainer.train()
+    # Log final loss (safely)
+    final_loss = None
+    for record in reversed(trainer.state.log_history):
+        if 'loss' in record:
+            final_loss = record['loss']
+            break
+
+    if final_loss is not None:
+        mlflow.log_metric("final_train_loss", final_loss)
+    else:
+        print("No loss found in trainer.state.log_history.")
+
 
 # === Save model ===
 unwrapped_model.save_pretrained("../models/stage2",  safe_serialization = True)

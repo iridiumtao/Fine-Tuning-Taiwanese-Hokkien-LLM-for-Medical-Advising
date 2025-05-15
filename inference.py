@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import torch.nn.functional as F
+from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 # Load model and tokenizer
 model_path = "models/stage1"
